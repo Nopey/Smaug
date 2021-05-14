@@ -241,6 +241,7 @@ BEGIN_SVAR_TYPE_IMPLEMENT(char*)
 			// They gave us a null.. how sad.
 			m_length = 0;
 			m_data = nullptr;
+			return;
 		}
 
 		m_length = strlen(str);
