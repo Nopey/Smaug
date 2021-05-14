@@ -3,21 +3,39 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-
-const static uint8_t s_errorTexture[] =
-{
-	255, 000, 000,   000, 000, 000,
-	000, 000, 000,   255, 000, 000
-};
-
 class CErrorTexture
 {
 public:
 	CErrorTexture()
 	{
-		const bgfx::Memory* mem = bgfx::alloc(sizeof(s_errorTexture));
-		memcpy(mem->data, s_errorTexture, sizeof(s_errorTexture));
-		m_textureHandle = bgfx::createTexture2D(2, 2, false, 1, bgfx::TextureFormat::Enum::RGB8, 0, mem);
+		// Width and height of error texture
+		const int SIZE = 128;
+		// RGB8 has bitdepth 3
+		const int BITDEPTH = 3;
+		const bgfx::Memory* mem = bgfx::alloc(SIZE*SIZE*BITDEPTH);
+
+		// Set image to black
+		memset(mem->data, 0, SIZE * SIZE * BITDEPTH);
+
+		// Set top left and bottom right to red
+		for (int y = 0; y < SIZE; y++)
+		{
+			// calculate start of the row
+			uint8_t *row = &mem->data[y * SIZE * BITDEPTH];
+			// For the bottom half of the image, offset halfway into the row
+			if (y > SIZE/2)
+				row += SIZE / 2 * BITDEPTH;
+			// Set first half of row to red
+			for (int x = 0; x < SIZE / 2; x++)
+			{
+				row[x * BITDEPTH] = 255;
+				// For magenta, simply add:
+				// row[x * BITDEPTH + 2] = 255;
+			}
+		}
+
+		// create texture
+		m_textureHandle = bgfx::createTexture2D(SIZE, SIZE, false, 1, bgfx::TextureFormat::Enum::RGB8, 0, mem);
 	}
 
 	bgfx::TextureHandle m_textureHandle;
