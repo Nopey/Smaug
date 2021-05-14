@@ -13,10 +13,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(BIGG_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BIGG_ASSET_GEN ON CACHE BOOL "" FORCE)
 
+option(SKIP_PERFORMANCE_COMPARISON "Skip building performance comparison (which requires boost)" ON)
+
 add_subdirectory( thirdparty/bigg )
 add_subdirectory( thirdparty/portable-file-dialogs )
 add_subdirectory( thirdparty/keyvalues )
 add_subdirectory( thirdparty/assimp )
+add_subdirectory( thirdparty/cereal )
 
 include_directories( thirdparty )
 add_subdirectory( Smaug )
