@@ -18,12 +18,12 @@ public:
     CTempLine(glm::vec3 start, glm::vec3 end, glm::vec3 color, float width, float deathTime) :
         m_start(start), m_end(end), m_color(color), m_width(width), m_deathTime(deathTime) {}
     
-    virtual void Draw()
+    virtual void Draw() override
     {
         BasicDraw().Line(m_start, m_end, m_color, m_width);
     }
 
-    virtual bool Dead(float curTime)
+    virtual bool Dead(float curTime) override
     {
         return curTime >= m_deathTime;
     }

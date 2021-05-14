@@ -14,7 +14,7 @@ class name : public CSVarTable        \
 {                                     \
 public:                               \
 	name(){ m_tableName = #name; }    \
-	virtual CSVarTable* New() { return new name(); }
+	virtual CSVarTable* New() override { return new name(); }
 
 
 #define END_SVAR_TABLE() };
@@ -104,16 +104,18 @@ public:
 	virtual void Init(const char* name, T value, CSVarTable* table) { Init(name, value); table->Register(static_cast<ISVar*>(this)); }
 	
 
-	virtual void SetName(const char* name) { m_name = name; }
-	virtual const char* GetName() { return m_name; }
-	virtual void* GetData() { return reinterpret_cast<void*>(&m_data); }
-	
+	virtual void SetName(const char* name) override { m_name = name; }
+	virtual const char* GetName() override { return m_name; }
+	virtual void* GetData() override { return reinterpret_cast<void*>(&m_data); }
+	// SetData left pure virtual
+
+	virtual const std::type_info& GetTypeInfo() override { return typeid(T); }
+
+	virtual ISVar* MakeCopy() override { return new CSVar<T>{ m_name,m_data }; }
+
+	// members not present in base class
 	virtual void SetValue(T value)  { m_data = value; }
 	T     GetValue()         { return m_data; }
-
-	virtual const std::type_info& GetTypeInfo() { return typeid(T); }
-
-	virtual ISVar* MakeCopy() { return new CSVar<T>{ m_name,m_data }; }
 protected:
 	const char* m_name = 0;
 	T m_data;
@@ -132,7 +134,7 @@ public:                                                                         
 	CSVar(const char* name, type value)                    { Init(name, value); }          \
 	CSVar(const char* name, type value, CSVarTable* table) { Init(name, value, table); }   \
 	operator type() const { return m_data; }											   \
-	virtual void SetData(void* data)													   \
+	virtual void SetData(void* data) override											   \
 	{                                 													   \
 		SetValue(*(VarType*)data);    													   \
 	}
@@ -141,7 +143,7 @@ public:                                                                         
 #define END_SVAR_TYPE_IMPLEMENT() };
 
 #define IMPL_FORMAT_TOSTRING(strSize, format) \
-virtual char* ToString()                      \
+virtual char* ToString() override             \
 {                                             \
 	char* str = new char[strSize];            \
 	snprintf(str, strSize, format, m_data);   \
@@ -150,7 +152,7 @@ virtual char* ToString()                      \
 
 
 #define IMPL_FORMAT_TOSTRING_EX(strSize, format, ...) \
-virtual char* ToString()                              \
+virtual char* ToString() override                     \
 {                                                     \
 	char* str = new char[strSize];                    \
 	snprintf(str, strSize, format, __VA_ARGS__);      \
@@ -158,7 +160,7 @@ virtual char* ToString()                              \
 }                                                     \
 
 #define IMPL_FROMSTRING(...)                          \
-virtual void FromString(char* str)                    \
+virtual void FromString(char* str) override           \
 {                                                     \
 	m_data = __VA_ARGS__;                             \
 }  
@@ -203,7 +205,7 @@ END_SVAR_TYPE_IMPLEMENT()
 
 
 BEGIN_SVAR_TYPE_IMPLEMENT(bool)
-	virtual char* ToString()
+	virtual char* ToString() override
 	{
 		if (m_data)
 		{
@@ -226,12 +228,12 @@ END_SVAR_TYPE_IMPLEMENT()
 
 BEGIN_SVAR_TYPE_IMPLEMENT(char*)
 	
-	virtual void SetValue(char* str)
+	virtual void SetValue(char* str) override
 	{
 		FromString(str);
 	}
 
-	virtual void FromString(char* str)
+	virtual void FromString(char* str) override
 	{
 		// We don't know how long this string is actually going to live. Let's copy it out 
 		if (!str)
@@ -252,16 +254,14 @@ BEGIN_SVAR_TYPE_IMPLEMENT(char*)
 		strncpy(m_data, str, m_length + 1);
 	}
 
-	virtual char* ToString()
+	virtual char* ToString() override
 	{
 		char* str = new char[m_length + 1];
 		strncpy(str, m_data, m_length + 1);
 		return str;
 	}
 	
-	virtual 
-
-	size_t GetLength() { return m_length; }
+	virtual size_t GetLength() { return m_length; }
 private:
 	size_t m_length = 0;
 END_SVAR_TYPE_IMPLEMENT()

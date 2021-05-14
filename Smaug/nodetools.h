@@ -13,19 +13,19 @@ public:
 		SetIconPath("assets/drag.png");
 	}
 
-	virtual const char* GetName() { return "Drag"; }
-	virtual const char* GetCursorPath() { return "assets/extrude_gizmo.obj"; }
+	virtual const char* GetName() override { return "Drag"; }
+	virtual const char* GetCursorPath() override { return "assets/extrude_gizmo.obj"; }
 
 	// When this key is pressed, this tool becomes active
-	virtual input_t GetToggleInput();
+	virtual input_t GetToggleInput() override;
 
 	// While this key is held, this tool is active
-	virtual input_t GetHoldInput();
+	virtual input_t GetHoldInput() override;
 
 
-	virtual int GetSelectionType() { return ACT_SELECT_SIDE /*| ACT_SELECT_VERT*/; }
+	virtual int GetSelectionType() override { return ACT_SELECT_SIDE /*| ACT_SELECT_VERT*/; }
 
-	virtual void StartDrag()
+	virtual void StartDrag() override
 	{
 		if (m_selectionInfo.selected & ACT_SELECT_VERT)
 		{
@@ -40,7 +40,7 @@ public:
 		m_action->Select(m_selectionInfo);
 	}
 
-	virtual void EndDrag()
+	virtual void EndDrag() override
 	{
 		if (glm::length(m_mouseDragDelta) == 0)
 		{
@@ -59,7 +59,7 @@ public:
 		}
 	};
 
-	virtual void Preview()
+	virtual void Preview() override
 	{
 		if (m_action)
 		{
@@ -81,26 +81,26 @@ public:
 		SetIconPath("assets/extrude.png");
 	}
 
-	virtual const char* GetName() { return "Extrude"; }
-	virtual const char* GetCursorPath() { return "assets/extend_gizmo.obj"; }
+	virtual const char* GetName() override { return "Extrude"; }
+	virtual const char* GetCursorPath() override { return "assets/extend_gizmo.obj"; }
 
 	// When this key is pressed, this tool becomes active
-	virtual input_t GetToggleInput();
+	virtual input_t GetToggleInput() override;
 
 	// While this key is held, this tool is active
-	virtual input_t GetHoldInput();
+	virtual input_t GetHoldInput() override;
 
 
-	virtual int GetSelectionType() { return ACT_SELECT_SIDE; }
+	virtual int GetSelectionType() override { return ACT_SELECT_SIDE; }
 
-	virtual void StartDrag()
+	virtual void StartDrag() override
 	{
 		m_wallExtrudeAction = new CWallExtrudeAction;
 		m_wallExtrudeAction->Select(m_selectionInfo);
 		m_wallExtrudeAction->SetMoveStart(m_mouseStartDragPos);
 	}
 
-	virtual void EndDrag()
+	virtual void EndDrag() override
 	{
 		if (glm::length(m_mouseDragDelta) == 0)
 		{
@@ -125,7 +125,7 @@ public:
 
 	};
 
-	virtual void Preview()
+	virtual void Preview() override
 	{
 		if (m_wallExtrudeAction)
 		{

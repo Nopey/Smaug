@@ -9,7 +9,7 @@
 // Check how long floats can be at some point
 BEGIN_SVAR_TYPE_IMPLEMENT(glm::vec3)
 	IMPL_FORMAT_TOSTRING_EX(128, "%f %f %f", m_data.x, m_data.y, m_data.z)
-	virtual void FromString(char* str)
+	virtual void FromString(char* str) override
 	{
 		char* endptr;
 		m_data.x = strtof(str, &endptr);
@@ -22,7 +22,7 @@ END_SVAR_TYPE_IMPLEMENT()
 
 #define DEFINE_TABLE_SVAR_INPUT(name, value, mouseButton) CSVar<input_t> name{#name, {value, mouseButton}, this};
 BEGIN_SVAR_TYPE_IMPLEMENT(input_t)
-	virtual char* ToString()
+	virtual char* ToString() override
 	{
 		const char* keyName = InputToName(m_data);
 		size_t len = strlen(keyName);
@@ -30,7 +30,7 @@ BEGIN_SVAR_TYPE_IMPLEMENT(input_t)
 		strncpy(str, keyName, len + 1);
 		return str;
 	}
-	virtual void FromString(char* str)
+	virtual void FromString(char* str) override
 	{
 		m_data = InputFromName(str);
 	}

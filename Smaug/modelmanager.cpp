@@ -32,8 +32,8 @@ public:
     };
 
     ~CModel();
-    virtual void Render(glm::vec3 origin, glm::vec3 angle, glm::vec3 scale);
-    virtual void Render(CModelTransform* transform);
+    virtual void Render(glm::vec3 origin, glm::vec3 angle, glm::vec3 scale) override;
+    virtual void Render(CModelTransform* transform) override;
 
     ModelVertex* m_vertices;
     size_t m_vertCount;
@@ -53,7 +53,7 @@ public:
 class CErrorModel : public IModel
 {
 public:
-    virtual void Render(glm::vec3 origin, glm::vec3 angle, glm::vec3 scale)
+    virtual void Render(glm::vec3 origin, glm::vec3 angle, glm::vec3 scale) override
     {
         float time = glfwGetTime();
         
@@ -64,7 +64,7 @@ public:
         BasicDraw().Cube(mtx);
         //bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::ERROR_MODEL_SHADER));// , BGFX_DISCARD_NONE);
     }
-    virtual void Render(CModelTransform* transform)
+    virtual void Render(CModelTransform* transform) override
     {
         float time = glfwGetTime();
 

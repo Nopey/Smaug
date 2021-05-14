@@ -10,9 +10,9 @@ class IModel;
 class CEditView : public CBaseView
 {
 public:
-	virtual void Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor);
-	virtual void Update(float dt, float mx, float my);
-	virtual void Draw(float dt);
+	virtual void Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor) override;
+	virtual void Update(float dt, float mx, float my) override;
+	virtual void Draw(float dt) override;
 	
 	glm::vec3 TransformMousePos(float mx, float my);
 	glm::vec3 m_editPlaneAngle;
