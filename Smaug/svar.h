@@ -235,6 +235,10 @@ BEGIN_SVAR_TYPE_IMPLEMENT(char*)
 
 	virtual void FromString(char* str) override
 	{
+		// Out with the old
+		if (m_data)
+			delete[] m_data;
+
 		// We don't know how long this string is actually going to live. Let's copy it out 
 		if (!str)
 		{
@@ -245,10 +249,6 @@ BEGIN_SVAR_TYPE_IMPLEMENT(char*)
 		}
 
 		m_length = strlen(str);
-
-		// Out with the old
-		if (m_data)
-			delete[] m_data;
 
 		// In with the new
 		m_data = new char[m_length + 1];
