@@ -32,6 +32,7 @@ int CSmaugApp::shutdown()
 {
 	ShaderManager().Shutdown();
 	BasicDraw().Shutdown();
+	GetWorldEditor().Shutdown();
 	return 0;
 }
 

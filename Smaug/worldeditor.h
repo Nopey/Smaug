@@ -199,6 +199,7 @@ class CWorldEditor
 public:
 	CWorldEditor();
 
+	void Shutdown();
 	CNode* GetNode(nodeId_t id);
 	void RegisterNode(CNode* node);
 	// Returns true on success

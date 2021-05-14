@@ -160,6 +160,15 @@ CWorldEditor::CWorldEditor()
 	m_currentNodeId = 0;
 }
 
+void CWorldEditor::Shutdown()
+{
+	for (auto p : m_nodes)
+	{
+		delete p.second;
+	}
+	m_nodes.clear();
+}
+
 void CWorldEditor::RegisterNode(CNode* node)
 {
 	m_nodes.emplace(m_currentNodeId, node);
