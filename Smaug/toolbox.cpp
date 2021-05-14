@@ -15,13 +15,6 @@ CToolBox::CToolBox()
 	m_holdingTool = false;
 }
 
-void CToolBox::RegisterTool(CBaseTool* tool)
-{
-	tool->Init();
-	
-	m_tools.push_back(tool);
-}
-
 void CToolBox::ShowToolBox()
 {
 	// UI
@@ -40,7 +33,7 @@ void CToolBox::ShowToolBox()
 
 		for (int i = 0; i < m_tools.size(); i++)
 		{
-			CBaseTool* tool = m_tools[i];
+			CBaseTool* tool = m_tools[i].get();
 			
 			ImVec4 tint(1,1,1,1);
 
@@ -83,7 +76,7 @@ void CToolBox::ShowToolBox()
 	// Check for keybinds
 	for (int i = 0; i < m_tools.size(); i++)
 	{
-		CBaseTool* tool = m_tools[i];
+		CBaseTool* tool = m_tools[i].get();
 
 		// Does this tool have a hold key?
 		if (tool->GetHoldInput().code != GLFW_KEY_UNKNOWN)

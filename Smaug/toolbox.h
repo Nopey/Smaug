@@ -2,6 +2,7 @@
 
 #include "basetool.h"
 #include <vector>
+#include <memory>
 
 class CToolBox
 {
@@ -15,9 +16,10 @@ public:
 	void SwitchToLast();
 
 	// This should always be used instead of directly adding a tool to m_tools. It insures the tool is properly initialized and etc
-	void RegisterTool(CBaseTool* tool);
+	template<typename T>
+	void RegisterTool();
 
-	std::vector<CBaseTool*> m_tools;
+	std::vector<std::unique_ptr<CBaseTool>> m_tools;
 	CBaseTool* m_currentTool;
 	CBaseTool* m_lastTool;
 
@@ -25,3 +27,9 @@ public:
 	bool m_holdingTool;
 	CBaseTool* m_pocketedTool;
 };
+
+template<typename T>
+void CToolBox::RegisterTool()
+{
+	m_tools.push_back(std::make_unique<T>());
+}

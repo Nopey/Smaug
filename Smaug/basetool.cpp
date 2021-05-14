@@ -8,6 +8,9 @@
 
 #include <GLFW/glfw3.h>
 
+CBaseTool::CBaseTool() :
+	m_iconHandle(TextureManager().ErrorTexture())
+{}
 
 void CBaseDragTool::Enable()
 {
@@ -106,11 +109,6 @@ void CBaseDragTool::Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mouseP
 
 		}
 	}
-}
-
-void CBaseTool::Init()
-{
-	m_iconHandle = TextureManager().LoadTexture(GetIconPath());
 }
 
 void CBaseTool::Enable()

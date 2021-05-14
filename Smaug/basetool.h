@@ -1,18 +1,18 @@
 #pragma once
 
 #include "actionmanager.h"
+#include "texturemanager.h"
 #include "input.h"
 #include <glm/vec3.hpp>
 
 class CBaseTool
 {
 public:
-	virtual void Init();
+	CBaseTool();
 
 	// Things are abstract here to force the programmer to set them later.
 
 	virtual const char* GetName() = 0;
-	virtual const char* GetIconPath() = 0;
 	virtual const char* GetCursorPath() = 0;
 	
 	bgfx::TextureHandle GetIconTexture() { return m_iconHandle; }
@@ -28,8 +28,16 @@ public:
 	virtual void Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mousePosRaw) {};
 	virtual void Disable() {};
 
-private:
+
+protected:
+
+	inline void SetIconPath(char const* path)
+	{
+		m_iconHandle = TextureManager().LoadTexture(path);
+	}
 	bgfx::TextureHandle m_iconHandle;
+
+private:
 };
 
 
