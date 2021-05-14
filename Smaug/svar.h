@@ -252,13 +252,13 @@ BEGIN_SVAR_TYPE_IMPLEMENT(char*)
 
 		// In with the new
 		m_data = new char[m_length + 1];
-		strncpy(m_data, str, m_length + 1);
+		memcpy(m_data, str, m_length + 1);
 	}
 
 	virtual char* ToString() override
 	{
 		char* str = new char[m_length + 1];
-		strncpy(str, m_data, m_length + 1);
+		memcpy(str, m_data, m_length + 1);
 		return str;
 	}
 	

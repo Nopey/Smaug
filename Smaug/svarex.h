@@ -27,7 +27,7 @@ BEGIN_SVAR_TYPE_IMPLEMENT(input_t)
 		const char* keyName = InputToName(m_data);
 		size_t len = strlen(keyName);
 		char* str = new char[len + 1];
-		strncpy(str, keyName, len + 1);
+		memcpy(str, keyName, len + 1);
 		return str;
 	}
 	virtual void FromString(char* str) override
