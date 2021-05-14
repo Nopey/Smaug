@@ -164,3 +164,14 @@ struct RendererProperties_t
 void SetRendererType(bgfx::RendererType::Enum type);
 bgfx::RendererType::Enum RendererType();
 const RendererProperties_t& RendererProperties();
+
+
+// A wrapper around bgfx::destroy, that invalidates the handle after destroying it
+// Also: Warns when called with invalid handle.
+template <typename T>
+void bgfx_destroy(T& handle)
+{
+	SASSERT_S(isValid(handle));
+	bgfx::destroy(handle);
+	handle = BGFX_INVALID_HANDLE;
+}

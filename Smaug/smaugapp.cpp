@@ -1,6 +1,7 @@
 #include "smaugapp.h"
 #include "worldrenderer.h"
 #include "shadermanager.h"
+#include "basicdraw.h"
 
 void CSmaugApp::initialize(int _argc, char** _argv)
 {
@@ -30,6 +31,7 @@ void CSmaugApp::initialize(int _argc, char** _argv)
 int CSmaugApp::shutdown()
 {
 	ShaderManager().Shutdown();
+	BasicDraw().Shutdown();
 	return 0;
 }
 

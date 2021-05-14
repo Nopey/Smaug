@@ -47,13 +47,11 @@ void CShaderManager::Shutdown()
 	{
 		if (s_programInfo[i].programHandle.idx != bgfx::kInvalidHandle)
 		{
-			bgfx::destroy(s_programInfo[i].programHandle);
-			s_programInfo[i].programHandle = BGFX_INVALID_HANDLE;
+			bgfx_destroy(s_programInfo[i].programHandle);
 		}
 	}
 
-	bgfx::destroy(m_colorUniform);
-	m_colorUniform = BGFX_INVALID_HANDLE;
+	bgfx_destroy(m_colorUniform);
 }
 
 void CShaderManager::SetColor(glm::vec3 color)

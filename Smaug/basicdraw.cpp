@@ -85,14 +85,23 @@ CBasicDraw::CBasicDraw()
 
 CBasicDraw::~CBasicDraw()
 {
-	bgfx::destroy(m_planeVertexBuf);
-	bgfx::destroy(m_planeIndexBuf);
+	SASSERT(!isValid(m_planeVertexBuf));
+	SASSERT(!isValid(m_planeIndexBuf));
 
-	bgfx::destroy(m_lineVertexBuf);
-	bgfx::destroy(m_lineIndexBuf);
-
+	SASSERT(!isValid(m_lineVertexBuf));
+	SASSERT(!isValid(m_lineIndexBuf));
 }
 
+
+
+void CBasicDraw::Shutdown()
+{
+	bgfx_destroy(m_planeVertexBuf);
+	bgfx_destroy(m_planeIndexBuf);
+
+	bgfx_destroy(m_lineVertexBuf);
+	bgfx_destroy(m_lineIndexBuf);
+}
 
 void CBasicDraw::Cube(glm::mat4 mtx)
 {

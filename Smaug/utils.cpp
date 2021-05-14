@@ -255,7 +255,7 @@ glm::vec3 Angles(glm::vec3 forward, glm::vec3* up)
 
 namespace CommandLine
 {
-	const char* const* argv; 
+	const char* const* argv;
 	int argc;
 }
 
