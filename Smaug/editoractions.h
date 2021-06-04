@@ -75,27 +75,18 @@ public:
 class CSideDragAction : public CBaseDragAction
 {
 public:
-	~CSideDragAction()
-	{
-		if (m_originalPos)
-			delete[] m_originalPos;
-	}
 
 	virtual const char* GetName() { return "Drag Side"; }
 	
 	virtual void Select(selectionInfo_t selectInfo)
 	{
 		CBaseDragAction::Select(selectInfo);
-		if (!m_originalPos)
-		{
+		SASSERT(m_originalPos.empty());
+		m_originalPos.clear();
+		m_originalPos.reserve(selectInfo.side->verts.size());
 
-			m_originalPos = new glm::vec3[selectInfo.side->verts.size()];
-		}
-		else
-			Log::Fault("Yo! Bad call!");
-
-		for (int i = 0; auto v : selectInfo.side->verts)
-			m_originalPos[i++] = *v->vert;
+		for ( auto v : selectInfo.side->verts )
+			m_originalPos.push_back( *v->vert );
 	}
 
 	virtual void Preview()
@@ -141,7 +132,7 @@ public:
 		return ACT_SELECT_SIDE;
 	}
 
-	glm::vec3* m_originalPos = nullptr;
+	std::vector<glm::vec3> m_originalPos;
 	glm::vec3 m_finalMoveDelta;
 
 };

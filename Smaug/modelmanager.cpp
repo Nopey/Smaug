@@ -169,10 +169,6 @@ CModelManager::~CModelManager()
     // Move elsewhere?
     bgfx::destroy(s_textureUniform);
 
-    for (auto pair : m_modelMap)
-    {
-        delete pair.second;
-    }
     m_modelMap.clear();
 }
 
@@ -189,7 +185,7 @@ IModel* CModelManager::LoadModel(const char* path)
     {
         // Turns out, we already have this loaded.
         // Let's just return it then
-        return modelSearch->second;
+        return modelSearch->second.get();
     }
 
     // We don't have it loaded... Guess we'll have to grab it then!
@@ -213,7 +209,8 @@ IModel* CModelManager::LoadModel(const char* path)
         return ErrorModel();
     }
 
-    CModel* model = new CModel;
+    auto owned_model = std::make_unique<CModel>();
+    auto model = owned_model.get();
     aiMesh* mesh = scene->mMeshes[0];
     AddMeshToModel(model, mesh);
 
@@ -240,11 +237,8 @@ IModel* CModelManager::LoadModel(const char* path)
     else
         model->m_texture = TextureManager().ErrorTexture();
 
-
     // Add the model to the map
-    m_modelMap.emplace(std::string(path), model);
-
-
+    m_modelMap.emplace(std::string(path), std::move(owned_model));
 
     Log::Print("[Model Manager] Loaded model %s\n", path);
     return model;

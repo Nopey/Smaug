@@ -80,7 +80,7 @@ public:
 
 private:
 	// We map paths to textures as we load them so that we don't reload them later
-	std::map<std::string, IModel*> m_modelMap;
+	std::map<std::string, std::unique_ptr<IModel>> m_modelMap;
 	uint16_t m_currentView;
 	std::unique_ptr<IModel> m_pErrorModel;
 };
