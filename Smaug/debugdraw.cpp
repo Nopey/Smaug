@@ -39,7 +39,7 @@ public:
 
 void CDebugDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float width, float decay)
 {
-    m_itemsToDraw.push_back(new CTempLine{start,end,color,width,(float)glfwGetTime() + decay});
+    m_itemsToDraw.push_back(std::make_unique<CTempLine>(start,end,color,width,(float)glfwGetTime() + decay));
 }
 
 
@@ -112,10 +112,9 @@ void CDebugDraw::Draw()
     
     for (int i = 0; i < m_itemsToDraw.size(); i++)
     {
-        ITempItem* t = m_itemsToDraw[i];
+        ITempItem* t = m_itemsToDraw[i].get();
         if (t->Dead(curtime))
         {
-            delete t;
             m_itemsToDraw.erase(m_itemsToDraw.begin() + i);
             i--;
         }

@@ -4,6 +4,7 @@
 
 #include <glm/vec3.hpp>
 #include <vector>
+#include <memory>
 
 class CDebugDraw
 {
@@ -28,7 +29,7 @@ public:
 	//	void Cube();
 	void Draw();
 private:
-	std::vector<ITempItem*> m_itemsToDraw;
+	std::vector<std::unique_ptr<ITempItem>> m_itemsToDraw;
 };
 
 
