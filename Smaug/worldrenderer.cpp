@@ -227,9 +227,3 @@ glm::vec3 nodeColor(CNode* node)
 	float saturation = (sin(mag * PI * 2 / 24.0f) + 1.0f) / 2.0f * 0.75f + 0.25f;
 	return colorHSV(theta, saturation, 1.0f);
 }
-
-CWorldRenderer& GetWorldRenderer()
-{
-	static CWorldRenderer worldRenderer;
-	return worldRenderer;
-}

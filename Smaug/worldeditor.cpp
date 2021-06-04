@@ -248,13 +248,6 @@ CTriNode* CWorldEditor::CreateTri()
 */
 
 
-CWorldEditor& GetWorldEditor()
-{
-	static CWorldEditor s_worldEditor;
-	return s_worldEditor;
-}
-
-
 CNode::CNode() : m_renderData(m_mesh), m_id(MAX_NODE_ID), m_visible(true)
 {
 }

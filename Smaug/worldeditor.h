@@ -222,4 +222,5 @@ public:
 
 };
 
+// now defined in smaugapp.cpp
 CWorldEditor& GetWorldEditor();

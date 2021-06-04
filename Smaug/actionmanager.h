@@ -96,4 +96,5 @@ public:
 	std::vector<IAction*> m_redoStack;
 };
 
+// now defined in smaugapp.cpp
 CActionManager& GetActionManager();

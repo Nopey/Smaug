@@ -99,3 +99,68 @@ CSmaugApp& GetApp()
 	static CSmaugApp app;
 	return app;
 }
+
+CActionManager& GetActionManager()
+{
+	return GetApp().m_actionManager;
+}
+
+CBasicDraw& BasicDraw()
+{
+	return GetApp().m_basicDraw;
+}
+
+CCursor& GetCursor()
+{
+	return GetApp().m_cursor;
+}
+
+CDebugDraw& DebugDraw()
+{
+	return GetApp().m_debugDraw;
+}
+
+CGrid& Grid()
+{
+	return GetApp().m_grid;
+}
+
+CInputManager& Input()
+{
+	return GetApp().m_input;
+}
+
+CModelManager& ModelManager()
+{
+	return GetApp().m_modelManager;
+}
+
+CSelectedView& SelectedView()
+{
+	return GetApp().m_selectedView;
+}
+
+CShaderManager& ShaderManager()
+{
+	return GetApp().m_shaderManager;
+}
+
+CTextureBrowser& TextureBrowser()
+{
+	return GetApp().m_textureBrowser;
+}
+
+CTextureManager& TextureManager()
+{
+	return GetApp().m_textureManager;
+}
+
+CWorldEditor& GetWorldEditor()
+{
+	return GetApp().m_worldEditor;
+}
+
+CWorldRenderer& GetWorldRenderer()
+{
+	return GetApp().m_worldRenderer;
+}

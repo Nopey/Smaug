@@ -14,4 +14,5 @@ private:
 	float m_aabbLength;
 };
 
+// now defined in smaugapp.cpp
 CSelectedView& SelectedView();

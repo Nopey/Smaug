@@ -47,5 +47,5 @@ private:
 
 };
 
-
+// now defined in smaugapp.cpp
 CCursor& GetCursor();

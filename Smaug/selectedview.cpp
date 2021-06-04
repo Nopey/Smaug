@@ -106,9 +106,3 @@ bool CSelectedView::Show()
 	ImGui::End();
 	return drawNextFrame;
 }
-
-CSelectedView& SelectedView()
-{
-	static CSelectedView s_sv;
-	return s_sv;
-}

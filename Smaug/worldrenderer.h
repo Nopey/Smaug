@@ -16,4 +16,5 @@ public:
 class CNode;
 glm::vec3 nodeColor(CNode* node);
 
+// now defined in smaugapp.cpp
 CWorldRenderer& GetWorldRenderer();

@@ -30,4 +30,5 @@ private:
 	bgfx::UniformHandle m_colorUniform;
 };
 
+// now defined in smaugapp.cpp
 CShaderManager& ShaderManager();

@@ -7,6 +7,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
+#include <memory>
 
 // Is this class over engineered?
 class CModelTransform
@@ -81,6 +82,8 @@ private:
 	// We map paths to textures as we load them so that we don't reload them later
 	std::map<std::string, IModel*> m_modelMap;
 	uint16_t m_currentView;
+	std::unique_ptr<IModel> m_pErrorModel;
 };
 
+// now defined in smaugapp.cpp
 CModelManager& ModelManager();

@@ -156,9 +156,3 @@ void CDebugDraw::AABB(aabb_t aabb, glm::vec3 color, float width, float decay)
 {
 }
 #endif
-
-CDebugDraw& DebugDraw()
-{
-    static CDebugDraw s_debugdraw;
-    return s_debugdraw;
-}

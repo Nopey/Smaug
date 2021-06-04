@@ -26,5 +26,5 @@ private:
 
 };
 
-
+// now defined in smaugapp.cpp
 CBasicDraw& BasicDraw();

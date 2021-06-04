@@ -34,4 +34,5 @@ private:
 
 };
 
+// now defined in smaugapp.cpp
 CGrid& Grid();

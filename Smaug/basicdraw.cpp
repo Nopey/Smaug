@@ -153,10 +153,3 @@ void CBasicDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float wid
 
 	bgfx::submit(ModelManager().CurrentView(), ShaderManager().GetShaderProgram(Shader::LINE));
 }
-
-CBasicDraw& BasicDraw()
-{
-	static CBasicDraw s_basicDraw;
-	return s_basicDraw;
-}
-

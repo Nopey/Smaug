@@ -1,12 +1,6 @@
 #include "input.h"
 #include "smaugapp.h"
 
-CInputManager& Input()
-{
-	static CInputManager s_input;
-	return s_input;
-}
-
 CInputManager::CInputManager()
 {
 }

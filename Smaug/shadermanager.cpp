@@ -71,9 +71,3 @@ bgfx::ProgramHandle CShaderManager::GetShaderProgram(Shader shader)
 
 	return s_programInfo[(int)shader].programHandle;
 }
-
-CShaderManager& ShaderManager()
-{
-	static CShaderManager s_ShaderManager;
-	return s_ShaderManager;
-}

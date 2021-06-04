@@ -78,12 +78,6 @@ public:
     }
 };
 
-static IModel* GetErrorModel()
-{
-    static CErrorModel s_errorModel;
-    return &s_errorModel;
-}
-
 struct ModelVertLayout
 {
     ModelVertLayout()
@@ -102,12 +96,6 @@ static ModelVertLayout s_vertLayout;
 ///////////////////
 // Model Manager //
 ///////////////////
-
-CModelManager& ModelManager()
-{
-    static CModelManager s_modelManager;
-    return s_modelManager;
-}
 
 static void AddMeshToModel(CModel* model, aiMesh* mesh)
 {
@@ -161,7 +149,9 @@ static void AddMeshToModel(CModel* model, aiMesh* mesh)
 
 }
 
-CModelManager::CModelManager()
+CModelManager::CModelManager() :
+    m_pErrorModel ( std::make_unique<CErrorModel>() ),
+    m_currentView( 0 )
 {
     // Move else where?
     s_textureUniform = bgfx::createUniform("s_textureUniform", bgfx::UniformType::Sampler);
@@ -207,7 +197,7 @@ IModel* CModelManager::LoadModel(const char* path)
     {
         // Oh, no. We failed to load the image...
         Log::Warn("[Model Manager] Failed to load model %s\n", path);
-        return GetErrorModel();
+        return ErrorModel();
     }
 
     CModel* model = new CModel;
@@ -251,7 +241,7 @@ IModel* CModelManager::LoadModel(const char* path)
 
 IModel* CModelManager::ErrorModel()
 {
-    return GetErrorModel();
+    return m_pErrorModel.get();
 }
 
 // Model

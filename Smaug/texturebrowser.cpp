@@ -53,9 +53,3 @@ void CTextureBrowser::Show()
 	}
 	ImGui::End();
 }
-
-CTextureBrowser& TextureBrowser()
-{
-	static CTextureBrowser s_tb;
-	return s_tb;
-}

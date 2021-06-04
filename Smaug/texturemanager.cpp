@@ -24,10 +24,9 @@ public:
 	bgfx::TextureHandle m_textureHandle;
 };
 
-static bgfx::TextureHandle GetErrorTexture()
+CTextureManager::CTextureManager() :
+	m_errorTexture( std::make_unique<CErrorTexture>() )
 {
-	static CErrorTexture s_errorT;
-	return s_errorT.m_textureHandle;
 }
 
 bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
@@ -118,11 +117,5 @@ bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 
 bgfx::TextureHandle CTextureManager::ErrorTexture()
 {
-	return GetErrorTexture();
-}
-
-CTextureManager& TextureManager()
-{
-	static CTextureManager s_textureManager;
-	return s_textureManager;
+	return m_errorTexture->m_textureHandle;
 }

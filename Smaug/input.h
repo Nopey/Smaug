@@ -31,4 +31,5 @@ public:
 	float Axis(input_t up, input_t down);
 };
 
+// now defined in smaugapp.cpp
 CInputManager& Input();

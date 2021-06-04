@@ -62,13 +62,6 @@ glm::vec3 SolvePosToSelection(selectionInfo_t info, glm::vec3 pos, SolveToLine2D
 	return glm::vec3(0.0f, 0.0f, 0.0f);
 }
 
-CActionManager& GetActionManager()
-{
-	static CActionManager actionManager;
-	
-	return actionManager;
-}
-
 
 void CActionManager::CommitAction(IAction* action)
 {
