@@ -127,9 +127,8 @@ namespace std
 class CNode
 {
 public:
-	CNode();
+	CNode(cuttableMesh_t &&);
 
-	void Init();
 	void PreviewUpdate();
 	void PreviewUpdateThisOnly();
 	void Update();

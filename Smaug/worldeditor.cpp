@@ -262,11 +262,7 @@ CTriNode* CWorldEditor::CreateTri()
 */
 
 
-CNode::CNode() : m_renderData(m_mesh), m_id(INVALID_NODE_ID), m_visible(true)
-{
-}
-
-void CNode::Init()
+CNode::CNode(cuttableMesh_t&& mesh) : m_mesh(std::move(mesh)), m_renderData(m_mesh), m_id(INVALID_NODE_ID), m_visible(true)
 {
 	/*
 	m_sides = new nodeSide_t[m_sideCount];
@@ -431,8 +427,9 @@ void CNode::CalculateAABB()
 	//printf("AABB - Max:{%f, %f, %f} - Min:{%f, %f, %f}\n", m_aabb.max.x, m_aabb.max.y, m_aabb.max.z, m_aabb.min.x, m_aabb.min.y, m_aabb.min.z);
 }
 
-CQuadNode::CQuadNode() : CNode()
-{
+static cuttableMesh_t make_quad_mesh() {
+	cuttableMesh_t mesh;
+
 	glm::vec3 points[] = {
 
 	{-1,-1,-1}, // bottom back left
@@ -447,24 +444,29 @@ CQuadNode::CQuadNode() : CNode()
 
 	};
 
-	auto p = addMeshVerts(m_mesh, &points[0], 8);
+	auto p = addMeshVerts(mesh, points, 8);
 
 	glm::vec3* front[] = { p[7], p[6], p[5], p[4] };
-	addMeshFace(m_mesh, front, 4);
+	addMeshFace(mesh, front, 4);
 
 	glm::vec3* back[] = { p[0], p[1], p[2], p[3] };
-	addMeshFace(m_mesh, &back[0], 4);
+	addMeshFace(mesh, back, 4);
 
 	glm::vec3* left[] = { p[3], p[7], p[4], p[0] };
-	addMeshFace(m_mesh, &left[0], 4);
+	addMeshFace(mesh, left, 4);
 
 	glm::vec3* right[] = { p[2], p[1], p[5], p[6] };
-	addMeshFace(m_mesh, &right[0], 4);
+	addMeshFace(mesh, right, 4);
 
 	glm::vec3* bottom[] = { p[4], p[5], p[1], p[0] };
-	addMeshFace(m_mesh, &bottom[0], 4);
+	addMeshFace(mesh, bottom, 4);
 
 	glm::vec3* top[] = { p[3], p[2], p[6], p[7] };
-	addMeshFace(m_mesh, &top[0], 4);
-	Init();
+	addMeshFace(mesh, top, 4);
+
+	return mesh;
+}
+
+CQuadNode::CQuadNode() : CNode(make_quad_mesh())
+{
 }

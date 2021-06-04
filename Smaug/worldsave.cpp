@@ -160,11 +160,10 @@ void loadWorld(char* input)
 			// Create the node out of the data we snatched
 			if (parts.size() != 0 && verts.size() != 0)
 			{
-				auto node = std::make_unique<CNode>();
+				cuttableMesh_t mesh;
+				mesh.origin = origin;
 
-				node->m_mesh.origin = origin;
-
-				auto& vertList = node->m_mesh.verts;
+				auto& vertList = mesh.verts;
 				for (auto v : verts)
 					vertList.push_back(new glm::vec3{v});
 				for (auto p : parts)
@@ -178,10 +177,10 @@ void loadWorld(char* input)
 						}
 						faceVerts.push_back(vertList[v]);
 					}
-					addMeshFace(node->m_mesh, faceVerts.data(), faceVerts.size());
+					addMeshFace(mesh, faceVerts.data(), faceVerts.size());
 				}
 
-				node->Init();
+				auto node = std::make_unique<CNode>(std::move(mesh));
 
 				GetWorldEditor().AssignID(std::move(node), id);
 			}

@@ -151,6 +151,15 @@ struct mesh_t
 {
 	~mesh_t();
 
+	mesh_t() = default;
+	// cannot safely be default-copied, as members refer to eachother's allocations
+	// does anyone feel like implementing that?
+	mesh_t(mesh_t const &) = delete;
+	// can be safely moved, because nothing references mesh_t's allocation itself.
+	mesh_t(mesh_t&&) = default;
+	// same for copy assignment
+	mesh_t const &operator=(mesh_t const &) = delete;
+
 	// The faces of this mesh
 	std::vector<meshPart_t*> parts;
 	
