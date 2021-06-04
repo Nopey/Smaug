@@ -149,12 +149,28 @@ static void AddMeshToModel(CModel* model, aiMesh* mesh)
 
 }
 
+static CModelManager *s_pModelManager = nullptr;
+
 CModelManager::CModelManager() :
     m_pErrorModel ( std::make_unique<CErrorModel>() ),
     m_currentView( 0 )
 {
+    SASSERT_FATAL(!s_pModelManager);
+    s_pModelManager = this;
+
     // Move else where?
     s_textureUniform = bgfx::createUniform("s_textureUniform", bgfx::UniformType::Sampler);
+}
+
+CModelManager::~CModelManager()
+{
+    s_pModelManager = nullptr;
+}
+
+CModelManager& ModelManager()
+{
+    SASSERT_FATAL(s_pModelManager);
+    return *s_pModelManager;
 }
 
 void CModelManager::Shutdown()

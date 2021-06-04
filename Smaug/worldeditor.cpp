@@ -154,11 +154,26 @@ void CNodeVertexRef::operator=(const CNodeVertexRef& ref)
 	m_part = ref.m_part;
 }
 
+static CWorldEditor *s_pWorldEditor = nullptr;
 
 CWorldEditor::CWorldEditor()
 {
+	SASSERT_FATAL(!s_pWorldEditor);
+	s_pWorldEditor = this;
 	m_currentNodeId = 0;
 }
+
+CWorldEditor::~CWorldEditor()
+{
+	s_pWorldEditor = nullptr;
+}
+
+CWorldEditor& GetWorldEditor()
+{
+	SASSERT_FATAL(s_pWorldEditor);
+	return *s_pWorldEditor;
+}
+
 
 void CWorldEditor::Clear()
 {

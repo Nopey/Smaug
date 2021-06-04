@@ -9,6 +9,7 @@ class CTextureManager
 {
 public:
 	CTextureManager();
+	~CTextureManager();
 	bgfx::TextureHandle LoadTexture(const char* path);
 	bgfx::TextureHandle ErrorTexture();
 private:
@@ -17,5 +18,4 @@ private:
 	std::unique_ptr<class CErrorTexture> m_errorTexture;
 };
 
-// now defined in smaugapp.cpp
 CTextureManager& TextureManager();

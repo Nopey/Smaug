@@ -22,9 +22,13 @@ s_programInfo[] = {
 	
 };
 
+CShaderManager *s_pShaderManager = nullptr;
 
-void CShaderManager::Init()
+CShaderManager::CShaderManager()
 {
+	SASSERT_FATAL(!s_pShaderManager);
+	s_pShaderManager = this;
+
 	for (int i = 1; i < (int)Shader::COUNT; i++)
 	{
 		
@@ -41,7 +45,7 @@ void CShaderManager::Init()
 	m_colorUniform = bgfx::createUniform("color", bgfx::UniformType::Vec4);
 }
 
-void CShaderManager::Shutdown()
+CShaderManager::~CShaderManager()
 {
 	for (int i = 1; i < (int)Shader::COUNT; i++)
 	{
@@ -54,7 +58,16 @@ void CShaderManager::Shutdown()
 
 	bgfx::destroy(m_colorUniform);
 	m_colorUniform = BGFX_INVALID_HANDLE;
+
+	s_pShaderManager = nullptr;
 }
+
+CShaderManager& ShaderManager()
+{
+	SASSERT_FATAL(s_pShaderManager);
+	return *s_pShaderManager;
+}
+
 
 void CShaderManager::SetColor(glm::vec4 color)
 {

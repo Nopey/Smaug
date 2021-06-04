@@ -25,20 +25,15 @@ static bgfx::RendererType::Enum ChooseRenderType()
 	return renderType;
 }
 
-CSmaugApp::CSmaugApp()
-	: bigg::Application("Smaug", 960, 720, ChooseRenderType())
+CSmaugApp::CSmaugApp() :
+	bigg::Application("Smaug", 960, 720, ChooseRenderType())
 {
-	ShaderManager().Init();
-
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	//io.ConfigDockingWithShift = true;
 
-	GetWorldRenderer().Init();
-
 	defaultWorld();
-
 
 	m_uiView.Init(ViewID::MAIN_VIEW, 1024, 1024, 0x404040FF);
 
@@ -52,7 +47,6 @@ void CSmaugApp::initialize(int _argc, char** _argv)
 
 int CSmaugApp::shutdown()
 {
-	ShaderManager().Shutdown();
 	return 0;
 }
 
@@ -100,11 +94,6 @@ CSmaugApp& GetApp()
 	return app;
 }
 
-CActionManager& GetActionManager()
-{
-	return GetApp().m_actionManager;
-}
-
 CBasicDraw& BasicDraw()
 {
 	return GetApp().m_basicDraw;
@@ -130,34 +119,9 @@ CInputManager& Input()
 	return GetApp().m_input;
 }
 
-CModelManager& ModelManager()
-{
-	return GetApp().m_modelManager;
-}
-
-CSelectedView& SelectedView()
-{
-	return GetApp().m_selectedView;
-}
-
-CShaderManager& ShaderManager()
-{
-	return GetApp().m_shaderManager;
-}
-
 CTextureBrowser& TextureBrowser()
 {
 	return GetApp().m_textureBrowser;
-}
-
-CTextureManager& TextureManager()
-{
-	return GetApp().m_textureManager;
-}
-
-CWorldEditor& GetWorldEditor()
-{
-	return GetApp().m_worldEditor;
 }
 
 CWorldRenderer& GetWorldRenderer()

@@ -63,6 +63,24 @@ glm::vec3 SolvePosToSelection(selectionInfo_t info, glm::vec3 pos, SolveToLine2D
 }
 
 
+static CActionManager *s_pActionManager = nullptr;
+CActionManager::CActionManager()
+{
+	SASSERT_FATAL(!s_pActionManager);
+	s_pActionManager = this;
+}
+
+CActionManager::~CActionManager()
+{
+	s_pActionManager = nullptr;
+}
+
+CActionManager& GetActionManager()
+{
+	SASSERT_FATAL(s_pActionManager);
+	return *s_pActionManager;
+}
+
 void CActionManager::CommitAction(IAction* action)
 {
 	action->Act();

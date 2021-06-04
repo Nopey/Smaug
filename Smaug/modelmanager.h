@@ -72,6 +72,7 @@ class CModelManager
 {
 public:
 	CModelManager();
+	~CModelManager();
 	IModel* LoadModel(const char* path);
 	void Shutdown();
 	IModel* ErrorModel();
@@ -85,5 +86,4 @@ private:
 	std::unique_ptr<IModel> m_pErrorModel;
 };
 
-// now defined in smaugapp.cpp
 CModelManager& ModelManager();

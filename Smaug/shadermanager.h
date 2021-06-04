@@ -21,8 +21,8 @@ enum class Shader
 class CShaderManager
 {
 public:
-	void Init();
-	void Shutdown();
+	CShaderManager();
+	~CShaderManager();
 
 	void SetColor(glm::vec4 color);
 	bgfx::ProgramHandle GetShaderProgram(Shader shader);
@@ -30,5 +30,4 @@ private:
 	bgfx::UniformHandle m_colorUniform;
 };
 
-// now defined in smaugapp.cpp
 CShaderManager& ShaderManager();

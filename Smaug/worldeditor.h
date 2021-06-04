@@ -198,6 +198,7 @@ class CWorldEditor
 {
 public:
 	CWorldEditor();
+	~CWorldEditor();
 
 	void Clear();
 
@@ -222,5 +223,4 @@ public:
 
 };
 
-// now defined in smaugapp.cpp
 CWorldEditor& GetWorldEditor();

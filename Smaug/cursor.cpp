@@ -17,7 +17,7 @@ CCursor::CCursor()
 	m_cursorMode = CursorMode::NONE;
 
 	m_cursorSpinTime = 0;
-	SetModel("assets/gizmo.obj");
+	m_model = ModelManager().LoadModel("assets/gizmo.obj");
 
 }
 

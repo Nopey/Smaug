@@ -24,10 +24,26 @@ public:
 	bgfx::TextureHandle m_textureHandle;
 };
 
+CTextureManager *s_pTextureManager = nullptr;
+
 CTextureManager::CTextureManager() :
 	m_errorTexture( std::make_unique<CErrorTexture>() )
 {
+	SASSERT_FATAL(!s_pTextureManager);
+	s_pTextureManager = this;
 }
+
+CTextureManager::~CTextureManager()
+{
+	s_pTextureManager = nullptr;
+}
+
+CTextureManager& TextureManager()
+{
+	SASSERT_FATAL(s_pTextureManager);
+	return *s_pTextureManager;
+}
+
 
 bgfx::TextureHandle CTextureManager::LoadTexture(const char* path)
 {

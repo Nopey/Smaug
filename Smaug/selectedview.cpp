@@ -10,6 +10,25 @@
 #include <GLFW/glfw3.h>
 #include <imgui_internal.h>
 
+static CSelectedView *s_pSelectedView = nullptr;
+
+CSelectedView::CSelectedView() :
+	m_aabbLength ( 0 )
+{
+	SASSERT_FATAL(!s_pSelectedView);
+	s_pSelectedView = this;
+}
+
+CSelectedView::~CSelectedView()
+{
+	s_pSelectedView = nullptr;
+}
+
+CSelectedView& SelectedView()
+{
+	SASSERT_FATAL(s_pSelectedView);
+	return *s_pSelectedView;
+}
 
 void CSelectedView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {

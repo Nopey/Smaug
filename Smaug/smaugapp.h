@@ -36,20 +36,22 @@ public:
 	CUIView m_uiView;
 	bool m_mouseLocked;
 
-	// TODO: Order app members so they construct in the proper order, and make some sense.
-	// Currently they're alphabetical
+	// These members all store a pointer to `this` in a static global,
+	// and define their own getter.
 	CActionManager m_actionManager;
+	CModelManager m_modelManager;
+	CShaderManager m_shaderManager;
+	CTextureManager m_textureManager;
+	CWorldEditor m_worldEditor;
+	CSelectedView m_selectedView;
+	
+	// These members all have static getters defined in smaugapp.cpp
 	CBasicDraw m_basicDraw;
 	CCursor m_cursor;
 	CDebugDraw m_debugDraw;
 	CGrid m_grid;
 	CInputManager m_input;
-	CModelManager m_modelManager;
-	CSelectedView m_selectedView;
-	CShaderManager m_shaderManager;
 	CTextureBrowser m_textureBrowser;
-	CTextureManager m_textureManager;
-	CWorldEditor m_worldEditor;
 	CWorldRenderer m_worldRenderer;
 };
 

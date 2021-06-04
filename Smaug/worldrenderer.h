@@ -7,7 +7,7 @@
 class CWorldRenderer
 {
 public:
-	void Init();
+	CWorldRenderer();
 	void Draw2D(bgfx::ViewId viewId, Shader shader);
 	void Draw3D(bgfx::ViewId viewId, Shader shader);
 	

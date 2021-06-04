@@ -81,6 +81,8 @@ protected:
 class CActionManager
 {
 public:
+	CActionManager();
+	~CActionManager();
 
 	void CommitAction(IAction* action);
 	bool FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags, glm::vec3* outPointOfIntersect = nullptr);
@@ -96,5 +98,4 @@ public:
 	std::vector<IAction*> m_redoStack;
 };
 
-// now defined in smaugapp.cpp
 CActionManager& GetActionManager();

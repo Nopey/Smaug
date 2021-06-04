@@ -5,6 +5,9 @@
 class CSelectedView : public CBaseView
 {
 public:
+	CSelectedView();
+	~CSelectedView();
+
 	virtual void Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor);
 	virtual void Draw(float dt);
 	void SetSelection(CNodeRef node);
@@ -14,5 +17,4 @@ private:
 	float m_aabbLength;
 };
 
-// now defined in smaugapp.cpp
 CSelectedView& SelectedView();

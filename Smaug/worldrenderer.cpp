@@ -26,7 +26,7 @@ static bgfx::IndexBufferHandle g_triTriIndexBuffer;
 static const uint16_t g_wallTriIndexList[] = { 0, 2, 3, 3, 1, 0 };
 #endif
 
-void CWorldRenderer::Init()
+CWorldRenderer::CWorldRenderer()
 {
 #if 0
 	g_vertexLayout = CreateVertexLayout();
