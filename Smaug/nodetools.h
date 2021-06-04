@@ -8,9 +8,9 @@
 class CDragTool : public CBaseDragTool
 {
 public:
+	CDragTool() : CBaseDragTool("assets/drag.png") {}
 
 	virtual const char* GetName() { return "Drag"; }
-	virtual const char* GetIconPath() { return "assets/drag.png"; }
 	virtual const char* GetCursorPath() { return "assets/extrude_gizmo.obj"; }
 
 	// When this key is pressed, this tool becomes active
@@ -72,9 +72,9 @@ public:
 class CExtrudeTool : public CBaseDragTool
 {
 public:
+	CExtrudeTool() : CBaseDragTool("assets/extrude.png") {}
 
 	virtual const char* GetName() { return "Extrude"; }
-	virtual const char* GetIconPath() { return "assets/extrude.png"; }
 	virtual const char* GetCursorPath() { return "assets/extend_gizmo.obj"; }
 
 	// When this key is pressed, this tool becomes active

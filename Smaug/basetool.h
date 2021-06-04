@@ -7,12 +7,11 @@
 class CBaseTool
 {
 public:
-	virtual void Init();
+	CBaseTool( char const *iconPath );
 
 	// Things are abstract here to force the programmer to set them later.
 
 	virtual const char* GetName() = 0;
-	virtual const char* GetIconPath() = 0;
 	virtual const char* GetCursorPath() = 0;
 	
 	bgfx::TextureHandle GetIconTexture() { return m_iconHandle; }
@@ -37,6 +36,7 @@ private:
 class CBaseSelectionTool : public CBaseTool
 {
 public:
+	CBaseSelectionTool( char const *iconPath ): CBaseTool( iconPath ) {}
 
 	// Override this with your ACT_SELECT_ to request types for selection
 	virtual int GetSelectionType() = 0;
@@ -46,6 +46,7 @@ public:
 class CBaseDragTool : public CBaseSelectionTool
 {
 public:
+	CBaseDragTool( char const *iconPath ): CBaseSelectionTool( iconPath ) {}
 
 	virtual void Enable();
 	virtual void Update(float dt, glm::vec3 mousePosSnapped, glm::vec3 mousePosRaw);

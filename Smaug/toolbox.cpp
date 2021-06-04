@@ -17,8 +17,6 @@ CToolBox::CToolBox()
 
 void CToolBox::RegisterTool(CBaseTool* tool)
 {
-	tool->Init();
-	
 	m_tools.push_back(tool);
 }
 
