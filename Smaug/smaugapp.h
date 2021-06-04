@@ -7,8 +7,7 @@ class CSmaugApp : public bigg::Application
 {
 public:
 
-	CSmaugApp()
-		: bigg::Application("Smaug", 960, 720) {}
+	CSmaugApp();
 
 	void initialize(int _argc, char** _argv);
 	int  shutdown();

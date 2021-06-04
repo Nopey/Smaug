@@ -107,6 +107,6 @@ void CVMFExporter::AddSide(KeyValue* parentKv, vmfPlane_t plane)
 
 void CVMFExporter::GetId(char* str)
 {
-    snprintf(str, 10, "%d", m_currentId);
+    snprintf(str, 10, "%zd", m_currentId);
     m_currentId++;
 }

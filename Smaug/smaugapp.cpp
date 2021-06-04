@@ -3,7 +3,30 @@
 #include "shadermanager.h"
 #include "worldsave.h"
 
-void CSmaugApp::initialize(int _argc, char** _argv)
+#ifdef _WIN32
+static constexpr auto DEFAULT_RENDER_TYPE = bgfx::RendererType::Direct3D11;
+#else
+static constexpr auto DEFAULT_RENDER_TYPE = bgfx::RendererType::OpenGL;
+#endif
+
+static bgfx::RendererType::Enum ChooseRenderType()
+{
+	auto renderType = DEFAULT_RENDER_TYPE;
+	if (CommandLine::HasAny("-gl", "-gles"))
+	renderType = bgfx::RendererType::OpenGL;
+	else if (CommandLine::HasAny("-vulkan", "-vk"))
+	renderType = bgfx::RendererType::Vulkan;
+	else if (CommandLine::HasAny("-dx9", "-d3d9", "-directx9"))
+	renderType = bgfx::RendererType::Direct3D9;
+	else if (CommandLine::HasAny("-dx11", "-d3d11", "-directx11"))
+	renderType = bgfx::RendererType::Direct3D11;
+	SetRendererType(renderType);
+
+	return renderType;
+}
+
+CSmaugApp::CSmaugApp()
+	: bigg::Application("Smaug", 960, 720, ChooseRenderType())
 {
 	ShaderManager().Init();
 
@@ -21,6 +44,10 @@ void CSmaugApp::initialize(int _argc, char** _argv)
 
 	m_mouseLocked = false;
 	mFpsLock = 120;
+}
+
+void CSmaugApp::initialize(int _argc, char** _argv)
+{
 }
 
 int CSmaugApp::shutdown()
