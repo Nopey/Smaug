@@ -68,6 +68,8 @@ CGrid::~CGrid()
 {
 	bgfx::destroy(m_gridScale);
 	bgfx::destroy(m_gridDirMask);
+	bgfx::destroy(m_planeVertexBuf);
+	bgfx::destroy(m_planeIndexBuf);
 }
 
 
