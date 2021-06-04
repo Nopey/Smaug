@@ -224,16 +224,19 @@ bool CWorldEditor::AssignID(std::unique_ptr<CNode> node, nodeId_t id)
 
 void CWorldEditor::DeleteNode(CNode* node)
 {
+	if(!node) return;
+
 	nodeId_t id = node->m_id;
 	if (id != INVALID_NODE_ID)
 	{
 		if (m_nodes.contains(id))
 		{
 			m_nodes.erase(id);
+			return;
 		}
 	}
 
-	delete node;
+	Log::Warn("DeleteNode called with unregistered node\n");
 }
 
 CQuadNode* CWorldEditor::CreateQuad()
