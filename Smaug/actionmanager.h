@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 #include "worldeditor.h"
 #include <typeinfo>
+#include <memory>
+#include <vector>
 
 #define ACT_SELECT_NONE 0
 #define ACT_SELECT_NODE	1
@@ -84,7 +86,7 @@ public:
 	CActionManager();
 	~CActionManager();
 
-	void CommitAction(IAction* action);
+	void CommitAction(std::unique_ptr<IAction>&& action);
 	bool FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int findFlags, glm::vec3* outPointOfIntersect = nullptr);
 
 	void Clear();
@@ -94,8 +96,8 @@ public:
 
 	void Update();
 
-	std::vector<IAction*> m_actionHistory;
-	std::vector<IAction*> m_redoStack;
+	std::vector<std::unique_ptr<IAction>> m_actionHistory;
+	std::vector<std::unique_ptr<IAction>> m_redoStack;
 };
 
 CActionManager& GetActionManager();

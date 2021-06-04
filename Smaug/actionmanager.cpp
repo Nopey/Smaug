@@ -4,6 +4,8 @@
 #include "cursor.h"
 #include "raytest.h"
 
+#include <algorithm>
+
 
 glm::vec3 GetSelectionPos(selectionInfo_t info)
 {
@@ -81,13 +83,11 @@ CActionManager& GetActionManager()
 	return *s_pActionManager;
 }
 
-void CActionManager::CommitAction(IAction* action)
+void CActionManager::CommitAction(std::unique_ptr<IAction>&& action)
 {
 	action->Act();
-	m_actionHistory.push_back(action);
+	m_actionHistory.push_back(std::move(action));
 	
-	for (auto a : m_redoStack)
-		delete a;
 	m_redoStack.clear();
 }
 
@@ -249,10 +249,12 @@ void CActionManager::Undo()
 	if (m_actionHistory.size() == 0)
 		return;
 
-	IAction* a = m_actionHistory.back();
-	m_actionHistory.pop_back();
+	IAction* a = m_actionHistory.back().get();
 	a->Undo();
-	m_redoStack.push_back(a);
+
+	m_redoStack.push_back(nullptr);
+	std::swap(m_redoStack.back(), m_actionHistory.back());
+	m_actionHistory.pop_back();
 }
 
 void CActionManager::Redo()
@@ -260,18 +262,16 @@ void CActionManager::Redo()
 	if (m_redoStack.size() == 0)
 		return;
 
-	IAction* a = m_redoStack.back();
-	m_redoStack.pop_back();
+	IAction* a = m_redoStack.back().get();
 	a->Redo();
-	m_actionHistory.push_back(a);
+
+	m_actionHistory.push_back(nullptr);
+	std::swap(m_redoStack.back(), m_actionHistory.back());
+	m_redoStack.pop_back();
 }
 
 void CActionManager::Clear()
 {
-	for (auto a : m_actionHistory)
-		delete a;
-	for (auto a : m_redoStack)
-		delete a;
 	m_actionHistory.clear();
 	m_redoStack.clear();
 }

@@ -26,11 +26,11 @@ public:
 	{
 		if (m_selectionInfo.selected & ACT_SELECT_VERT)
 		{
-			m_action = new CVertDragAction;
+			m_action = std::make_unique<CVertDragAction>();
 		}
 		else
 		{
-			m_action = new CSideDragAction;
+			m_action = std::make_unique<CSideDragAction>();
 		}
 
 		m_action->SetMoveStart(m_mouseStartDragPos);
@@ -42,13 +42,12 @@ public:
 		if (glm::length(m_mouseDragDelta) == 0)
 		{
 			// No delta... Delete the action and move on
-			delete m_action;
 			m_action = nullptr;
 		}
 		else
 		{
 			m_action->SetMoveDelta(m_mouseDragDelta);
-			GetActionManager().CommitAction(m_action);
+			GetActionManager().CommitAction(std::move(m_action));
 
 			// We don't need to delete the action
 			// The manager is taking care of it for us now
@@ -65,7 +64,7 @@ public:
 		}
 	}
 
-	CBaseDragAction* m_action;
+	std::unique_ptr<CBaseDragAction> m_action;
 };
 
 
@@ -88,7 +87,7 @@ public:
 
 	virtual void StartDrag()
 	{
-		m_wallExtrudeAction = new CWallExtrudeAction;
+		m_wallExtrudeAction = std::make_unique<CWallExtrudeAction>();
 		m_wallExtrudeAction->Select(m_selectionInfo);
 		m_wallExtrudeAction->SetMoveStart(m_mouseStartDragPos);
 	}
@@ -98,19 +97,17 @@ public:
 		if (glm::length(m_mouseDragDelta) == 0)
 		{
 			// No delta... Delete the action and move on
-			delete m_wallExtrudeAction;
 			m_wallExtrudeAction = nullptr;
 		}
 		else if (0)//glm::dot(faceNormal(m_selectionInfo.side), m_mouseDragDelta) >= 0)
 		{
 			// Backwards extrude... Delete and move on
-			delete m_wallExtrudeAction;
 			m_wallExtrudeAction = nullptr;
 		}
 		else
 		{
 			m_wallExtrudeAction->SetMoveDelta(m_mouseDragDelta);
-			GetActionManager().CommitAction(m_wallExtrudeAction);
+			GetActionManager().CommitAction(std::move(m_wallExtrudeAction));
 			// We don't need to delete the action
 			// The manager is taking care of it for us now
 			m_wallExtrudeAction = nullptr;
@@ -127,5 +124,5 @@ public:
 		}
 	}
 
-	CWallExtrudeAction* m_wallExtrudeAction;
+	std::unique_ptr<CWallExtrudeAction> m_wallExtrudeAction;
 };
