@@ -297,9 +297,9 @@ testRayPlane_t testRay(ray_t ray)
 {
     testRayPlane_t end = { false };
 
-    for (auto p : GetWorldEditor().m_nodes)
+    for (auto const& [_, node] : GetWorldEditor().m_nodes)
     {
-        testNode(ray, p.second, end );
+        testNode(ray, node.get(), end );
     }
     return end;
 }

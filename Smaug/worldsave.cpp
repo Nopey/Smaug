@@ -15,7 +15,7 @@ char* saveWorld()
 	snprintf(buf, sizeof(buf), "%d", SAVE_FILE_VERSION);
 	file.Add("smf", buf);
 
-	for (auto n : GetWorldEditor().m_nodes)
+	for (auto const &n : GetWorldEditor().m_nodes)
 	{
 		KeyValue* node = file.AddNode("node");
 		snprintf(buf, sizeof(buf), "%d", n.first);
@@ -160,7 +160,7 @@ void loadWorld(char* input)
 			// Create the node out of the data we snatched
 			if (parts.size() != 0 && verts.size() != 0)
 			{
-				CNode* node = new CNode();
+				auto node = std::make_unique<CNode>();
 
 				node->m_mesh.origin = origin;
 
@@ -183,7 +183,7 @@ void loadWorld(char* input)
 
 				node->Init();
 
-				GetWorldEditor().AssignID(node, id);
+				GetWorldEditor().AssignID(std::move(node), id);
 			}
 			else
 			{
@@ -192,8 +192,8 @@ void loadWorld(char* input)
 		}
 	}
 
-	for (auto n : GetWorldEditor().m_nodes)
-		n.second->UpdateThisOnly();
+	for (auto const& [_, node] : GetWorldEditor().m_nodes)
+		node->UpdateThisOnly();
 
 }
 

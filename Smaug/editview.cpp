@@ -141,10 +141,10 @@ void CEditView::Draw(float dt)
 	
 	float t = glfwGetTime();
 
-	for (auto p : GetWorldEditor().m_nodes)
+	for (auto const & [_, node] : GetWorldEditor().m_nodes)
 	{
 		CModelTransform mt;
-		mt.SetAbsOrigin(p.second->Origin());
+		mt.SetAbsOrigin(node->Origin());
 		mt.SetAbsScale(min(m_viewZoom / 16.0f, 4.0f));
 		m_tickModel->Render(&mt);
 	}

@@ -8,6 +8,7 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <memory>
 
 // World References
 //  - These function as semi-safe references to objects in the world, 
@@ -135,27 +136,24 @@ public:
 	void UpdateThisOnly();
 
 	//void ConstructWalls();
-	bool IsPointInAABB(glm::vec3 point);
+	bool IsPointInAABB(glm::vec3 point) const;
 
 	// Absolute to world
-	aabb_t GetAbsAABB();
+	aabb_t GetAbsAABB() const;
 	// Local to node's origin
-	aabb_t GetLocalAABB() { return m_aabb; }
+	aabb_t GetLocalAABB() const { return m_aabb; }
 
-	glm::vec3 Origin() { return m_mesh.origin; }
+	glm::vec3 Origin() const { return m_mesh.origin; }
 
 	void SetVisible(bool visible) { m_visible = visible; }
-	bool IsVisible() { return m_visible; }
-	nodeId_t NodeID() { return m_id; }
+	bool IsVisible() const { return m_visible; }
+	nodeId_t NodeID() const { return m_id; }
 	CNodeRef Ref() { return { m_id }; }
 
 	void ConnectTo(CNodeRef node);
 	void DisconnectFrom(CNodeRef node);
 
 protected:
-
-	// Nodes should not be manually deleted!
-	~CNode() {}
 
 	//void LinkSides();
 	void CalculateAABB();
@@ -170,7 +168,7 @@ public:
 protected:
 	aabb_t m_aabb;
 	bool m_visible;
-	nodeId_t m_id = INVALID_NODE_ID;
+	nodeId_t m_id;
 
 	friend class CWorldEditor;
 };
@@ -203,10 +201,10 @@ public:
 	void Clear();
 
 	CNode* GetNode(nodeId_t id);
-	void RegisterNode(CNode* node);
+	void RegisterNode(std::unique_ptr<CNode> node);
 	
 	// Returns true on success
-	bool AssignID(CNode* node, nodeId_t id);
+	bool AssignID(std::unique_ptr<CNode> node, nodeId_t id);
 	void DeleteNode(CNode* node);
 
 	CQuadNode* CreateQuad();
@@ -214,7 +212,7 @@ public:
 	
 
 //private:
-	std::unordered_map<nodeId_t, CNode*> m_nodes;
+	std::unordered_map<nodeId_t, std::unique_ptr<CNode>> m_nodes;
 
 	// This lets us create unique ids
 	// Ideally, we should never decrement this, but if we never do, we'll run out of space due to edit history...

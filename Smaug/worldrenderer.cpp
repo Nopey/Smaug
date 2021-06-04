@@ -39,15 +39,14 @@ void CWorldRenderer::Draw2D(bgfx::ViewId viewId, Shader shader)
 {
 	bgfx::ProgramHandle shaderProgram = ShaderManager().GetShaderProgram(shader);
 	CWorldEditor& world = GetWorldEditor();
-	for (auto p : world.m_nodes)
+	for (auto const& [_, node] : world.m_nodes)
 	{
-		CNode* node = p.second;
 
 		node->m_renderData.Render();
 
 		// Set the color
 		// Precompute this?
-		ShaderManager().SetColor(glm::vec4(nodeColor(node), 0.85f));
+		ShaderManager().SetColor(glm::vec4(nodeColor(node.get()), 0.85f));
 		bgfx::setState(
 			  BGFX_STATE_CULL_CW
 			| BGFX_STATE_WRITE_RGB
@@ -66,17 +65,15 @@ void CWorldRenderer::Draw3D(bgfx::ViewId viewId, Shader shader)
 {
 	bgfx::ProgramHandle shaderProgram = ShaderManager().GetShaderProgram(shader);
 	CWorldEditor& world = GetWorldEditor();
-	for (auto p : GetWorldEditor().m_nodes)
+	for (auto const& [_, node] : world.m_nodes)
 	{
-		CNode* node = p.second;
-
 		if(node->IsVisible())
 		{
 			node->m_renderData.Render();
 
 			// Set the color
 			// Precompute this?
-			ShaderManager().SetColor(glm::vec4(nodeColor(node), 1.0f));
+			ShaderManager().SetColor(glm::vec4(nodeColor(node.get()), 1.0f));
 			bgfx::submit(viewId, shaderProgram);
 		}
 	}

@@ -2,9 +2,9 @@
 #include "debugdraw.h"
 #include <utils.h>
 
-CNode* CWallExtrudeAction::CreateExtrusion()
+std::unique_ptr<CNode> CWallExtrudeAction::CreateExtrusion()
 {
-	CQuadNode* quad = new CQuadNode();
+	auto quad = std::make_unique<CQuadNode>();
 	quad->m_mesh.origin = m_node->Origin();
 
 	meshPart_t* selectedPart = m_selectInfo.side;
@@ -32,11 +32,12 @@ void CWallExtrudeAction::Preview()
 
 void CWallExtrudeAction::Act()
 {
-	CNode* node = CreateExtrusion();
-	GetWorldEditor().RegisterNode(node);
-	m_quad = node;
-	node->ConnectTo(m_node);
-	node->Update();
+	auto node = CreateExtrusion();
+	auto pNode = node.get();
+	GetWorldEditor().RegisterNode(std::move(node));
+	m_quad = pNode;
+	pNode->ConnectTo(m_node);
+	pNode->Update();
 }
 
 void CWallExtrudeAction::Undo()
@@ -54,8 +55,9 @@ void CWallExtrudeAction::Redo()
 {
 	SASSERT(!m_quad.Node());
 
-	CNode* node = CreateExtrusion();
-	GetWorldEditor().AssignID(node, m_quad.ID());
+	auto node = CreateExtrusion();
+	auto pNode = node.get();
+	GetWorldEditor().AssignID(std::move(node), m_quad.ID());
 	node->ConnectTo(m_node);
 	node->Update();
 

@@ -109,10 +109,8 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 	glm::vec3 pointOfIntersect = {0, 0, 0};
 
 	// Find the selected item
-	for (auto p : GetWorldEditor().m_nodes)
+	for (auto & [_, node] : GetWorldEditor().m_nodes)
 	{
-		CNode* node = p.second;
-		
 		// Put the mouse on level with the node
 		glm::vec3 localMouse = mousePos - node->Origin();
 		localMouse *= workingAxisMask; // Flatten it out to just this plane
@@ -141,7 +139,7 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 					{
 						// Got a point. Add the flag and break the loop.
 						info.selected |= ACT_SELECT_VERT;
-						info.vertex = { v, node };
+						info.vertex = { v, node.get() };
 						break;
 					}
 				}
@@ -177,7 +175,7 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 					if (findFlags & ACT_SELECT_SIDE)
 					{
 						info.selected |= ACT_SELECT_SIDE;
-						info.side = { p, node };
+						info.side = { p, node.get() };
 						
 						foundSomething = true;
 					}
@@ -222,7 +220,7 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 		{
 			// We almost always need the node anyway
 			info.selected |= ACT_SELECT_NODE;
-			info.node = node;
+			info.node = node.get();
 
 			if (outPointOfIntersect)
 				*outPointOfIntersect = pointOfIntersect;
@@ -234,7 +232,7 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 		{
 			// They just want a node
 			info.selected |= ACT_SELECT_NODE;
-			info.node = node;
+			info.node = node.get();
 
 			if (outPointOfIntersect)
 				*outPointOfIntersect = pointOfIntersect;

@@ -57,7 +57,7 @@ class CWallExtrudeAction : public CBaseDragAction
 public:
 	virtual const char* GetName() { return "Extrude Wall"; }
 
-	CNode* CreateExtrusion();
+	std::unique_ptr<CNode> CreateExtrusion();
 
 	virtual void Preview();
 	virtual void Act();

@@ -27,9 +27,8 @@ char* COBJExporter::Export(CWorldEditor* world)
 	stream << " build compiled on " << __DATE__ << "\n";
 
 	stream << "\n# Vertexes\n";
-	for (auto p : GetWorldEditor().m_nodes)
+	for (auto const& [_, node] : GetWorldEditor().m_nodes)
 	{
-		CNode* node = p.second;
 
 		cuttableMesh_t& mesh = node->m_mesh;
 		glm::vec3 origin = mesh.origin;
@@ -55,9 +54,8 @@ char* COBJExporter::Export(CWorldEditor* world)
 	stream << "\n# Faces\n";
 	int partNormOffset = 1;
 
-	for (auto p : GetWorldEditor().m_nodes)
+	for (auto const& [_, node] : GetWorldEditor().m_nodes)
 	{
-		CNode* node = p.second;
 
 		cuttableMesh_t& mesh = node->m_mesh;
 		stream << "# Node " << node->NodeID() << "\n";

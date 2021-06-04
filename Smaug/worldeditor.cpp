@@ -178,23 +178,20 @@ CWorldEditor& GetWorldEditor()
 void CWorldEditor::Clear()
 {
 	m_currentNodeId = 0;
-	for (auto p : m_nodes)
-		delete p.second;
 	m_nodes.clear();
 }
 
-void CWorldEditor::RegisterNode(CNode* node)
+void CWorldEditor::RegisterNode(std::unique_ptr<CNode> node)
 {
-	m_nodes.emplace(m_currentNodeId, node);
-
 	node->m_id = m_currentNodeId;
+	m_nodes.emplace(m_currentNodeId, std::move(node));
 	m_currentNodeId++;
 
 	// If this ever happens, it'll be awful.
 	SASSERT(m_currentNodeId != INVALID_NODE_ID);
 }
 
-bool CWorldEditor::AssignID(CNode* node, nodeId_t id)
+bool CWorldEditor::AssignID(std::unique_ptr<CNode> node, nodeId_t id)
 {
 	// If we're one ahead of the cur, increment it. It'll make life easier
 	if (id == m_currentNodeId + 1)
@@ -219,8 +216,8 @@ bool CWorldEditor::AssignID(CNode* node, nodeId_t id)
 		}
 	}
 
-	m_nodes.emplace(id, node);
 	node->m_id = id;
+	m_nodes.emplace(id, std::move(node));
 
 	return true;
 }
@@ -241,29 +238,31 @@ void CWorldEditor::DeleteNode(CNode* node)
 
 CQuadNode* CWorldEditor::CreateQuad()
 {
-	CQuadNode* node = new CQuadNode();
-	RegisterNode(node);
-	return node;
+	std::unique_ptr<CQuadNode> node = std::make_unique<CQuadNode>();
+	CQuadNode *pNode = node.get();
+	RegisterNode(std::move(node));
+	return pNode;
 }
 
 CNode* CWorldEditor::GetNode(nodeId_t id)
 {
 	if(!m_nodes.contains(id))
 		return nullptr;
-	return m_nodes[id];
+	return m_nodes[id].get();
 }
 
 /*
 CTriNode* CWorldEditor::CreateTri()
 {
-	CTriNode* node = new CTriNode();
-	RegisterNode(node);
-	return node;
+	std::unique_ptr<CTriNode> node = std::make_unique<CTriNode>();
+	CTriNode *pNode = node.get();
+	RegisterNode(std::move(node));
+	return pNode;
 }
 */
 
 
-CNode::CNode() : m_renderData(m_mesh), m_id(MAX_NODE_ID), m_visible(true)
+CNode::CNode() : m_renderData(m_mesh), m_id(INVALID_NODE_ID), m_visible(true)
 {
 }
 
@@ -308,9 +307,9 @@ void CNode::PreviewUpdateThisOnly()
 	}
 
 	std::vector<mesh_t*> cutters;
-	for (auto c : GetWorldEditor().m_nodes)
-		if (c.second != this)
-			cutters.push_back(&c.second->m_mesh);
+	for (auto const &[_, node] : GetWorldEditor().m_nodes)
+		if (node.get() != this)
+			cutters.push_back(&node->m_mesh);
 	applyCuts(&m_mesh, cutters);
 
 	for (auto pa : m_mesh.parts)
@@ -387,12 +386,12 @@ void CNode::UpdateThisOnly()
 }
 
 
-bool CNode::IsPointInAABB(glm::vec3 point)
+bool CNode::IsPointInAABB(glm::vec3 point) const
 {
 	return testPointInAABB(point, GetAbsAABB(), 1.25f);
 }
 
-aabb_t CNode::GetAbsAABB()
+aabb_t CNode::GetAbsAABB() const
 {
 	aabb_t aabb = m_aabb;
 	aabb.min += m_mesh.origin;
