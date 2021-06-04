@@ -165,16 +165,7 @@ CModelManager::CModelManager() :
 CModelManager::~CModelManager()
 {
     s_pModelManager = nullptr;
-}
 
-CModelManager& ModelManager()
-{
-    SASSERT_FATAL(s_pModelManager);
-    return *s_pModelManager;
-}
-
-void CModelManager::Shutdown()
-{
     // Move elsewhere?
     bgfx::destroy(s_textureUniform);
 
@@ -183,6 +174,12 @@ void CModelManager::Shutdown()
         delete pair.second;
     }
     m_modelMap.clear();
+}
+
+CModelManager& ModelManager()
+{
+    SASSERT_FATAL(s_pModelManager);
+    return *s_pModelManager;
 }
 
 IModel* CModelManager::LoadModel(const char* path)

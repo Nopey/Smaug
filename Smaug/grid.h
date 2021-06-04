@@ -8,7 +8,7 @@ class CGrid
 {
 public:
 	CGrid();
-	void Shutdown();
+	~CGrid();
 	void Update();
 	void Draw();
 

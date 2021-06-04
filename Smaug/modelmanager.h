@@ -74,7 +74,6 @@ public:
 	CModelManager();
 	~CModelManager();
 	IModel* LoadModel(const char* path);
-	void Shutdown();
 	IModel* ErrorModel();
 	void SetView(uint16_t view) { m_currentView = view; }
 	uint16_t CurrentView() { return m_currentView; }

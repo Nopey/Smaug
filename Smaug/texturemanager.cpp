@@ -20,6 +20,10 @@ public:
 		memcpy(mem->data, s_errorTexture, sizeof(s_errorTexture));
 		m_textureHandle = bgfx::createTexture2D(2, 2, false, 1, bgfx::TextureFormat::Enum::RGB8, BGFX_TEXTURE_NONE | BGFX_SAMPLER_POINT, mem);
 	}
+	~CErrorTexture()
+	{
+		bgfx::destroy(m_textureHandle);
+	}
 
 	bgfx::TextureHandle m_textureHandle;
 };
@@ -36,6 +40,9 @@ CTextureManager::CTextureManager() :
 CTextureManager::~CTextureManager()
 {
 	s_pTextureManager = nullptr;
+
+	for ( const auto& [_, textureHandle] : m_textureMap )
+		bgfx::destroy(textureHandle);
 }
 
 CTextureManager& TextureManager()

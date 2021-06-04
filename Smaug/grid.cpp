@@ -64,7 +64,7 @@ CGrid::CGrid()
 	m_planeIndexBuf = bgfx::createIndexBuffer(bgfx::makeRef(s_gridTriList, sizeof(s_gridTriList)));
 }
 
-void CGrid::Shutdown()
+CGrid::~CGrid()
 {
 	bgfx::destroy(m_gridScale);
 	bgfx::destroy(m_gridDirMask);
