@@ -12,11 +12,14 @@
 
 static CSelectedView *s_pSelectedView = nullptr;
 
-CSelectedView::CSelectedView() :
-	m_aabbLength ( 0 )
+CSelectedView::CSelectedView(bgfx::ViewId viewId, int width, int height, uint32_t clearColor) :
+	CBaseView(viewId, width, height, clearColor),
+	m_aabbLength(0)
 {
 	SASSERT_FATAL(!s_pSelectedView);
 	s_pSelectedView = this;
+
+	m_selectedNode = nullptr;
 }
 
 CSelectedView::~CSelectedView()
@@ -29,13 +32,6 @@ CSelectedView& SelectedView()
 	SASSERT_FATAL(s_pSelectedView);
 	return *s_pSelectedView;
 }
-
-void CSelectedView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
-{
-	CBaseView::Init(viewId, width, height, clearColor);
-	m_selectedNode = nullptr;
-}
-
 
 void CSelectedView::Draw(float dt)
 {

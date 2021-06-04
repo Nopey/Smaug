@@ -12,23 +12,20 @@
 
 #include <imgui_internal.h>
 
-void CUIView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
+CUIView::CUIView(bgfx::ViewId viewId, int width, int height, uint32_t clearColor) :
+	CBaseView(viewId, width, height, clearColor),
+	m_previewView(ViewID::PREVIEW_VIEW, 1024, 1024, 0x383838FF),
+	m_editViews{
+		CEditView(ViewID::EDIT_VIEW + 0, 1024, 1024, 0x121212FF, { 0, 0, 0 }),
+		CEditView(ViewID::EDIT_VIEW + 1, 1024, 1024, 0x121212FF, { -PI / 2, 0, 0 }),
+		CEditView(ViewID::EDIT_VIEW + 2, 1024, 1024, 0x121212FF, { -PI / 2, PI / 2, 0 })
+	}
 {
-	CBaseView::Init(viewId, width, height, clearColor);
 
 	//ImGui::CreateNewWindow
 
 	// Move this?
 	GetSettingsRegister().LoadSettings();
-
-	m_editViews[0].m_editPlaneAngle = { 0, 0, 0 };
-	m_editViews[1].m_editPlaneAngle = { -PI / 2, 0, 0 };
-	m_editViews[2].m_editPlaneAngle = { -PI / 2, PI / 2, 0 };
-
-	for(int i = 0; i < 3; i++)
-		m_editViews[i].Init(ViewID::EDIT_VIEW + i, 1024, 1024, 0x121212FF);
-	m_previewView.Init(ViewID::PREVIEW_VIEW, 1024, 1024, 0x383838FF);
-	SelectedView().Init(ViewID::SELECTED_VIEW, 1024, 1024, 0x383838FF);
 
 	m_drawPreviewView = true;
 	m_drawEditView = true;

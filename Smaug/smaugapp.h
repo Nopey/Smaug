@@ -33,7 +33,6 @@ public:
 	GLFWwindow* GetWindow() { return mWindow; };
 
 
-	CUIView m_uiView;
 	bool m_mouseLocked;
 
 	// These members all store a pointer to `this` in a static global,
@@ -44,7 +43,7 @@ public:
 	CTextureManager m_textureManager;
 	CWorldEditor m_worldEditor;
 	CSelectedView m_selectedView;
-	
+
 	// These members all have static getters defined in smaugapp.cpp
 	CBasicDraw m_basicDraw;
 	CCursor m_cursor;
@@ -53,6 +52,8 @@ public:
 	CInputManager m_input;
 	CTextureBrowser m_textureBrowser;
 	CWorldRenderer m_worldRenderer;
+
+	CUIView m_uiView;
 };
 
 CSmaugApp& GetApp();

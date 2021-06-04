@@ -40,9 +40,9 @@ static C3DViewSettings s_3dViewSettings;
 DEFINE_SETTINGS_MENU("3D View", s_3dViewSettings);
 
 
-void C3DView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
+C3DView::C3DView(bgfx::ViewId viewId, int width, int height, uint32_t clearColor) :
+	CBaseView(viewId, width, height, clearColor)
 {
-	CBaseView::Init(viewId, width, height, clearColor);
 	m_cameraAngle = glm::vec3(0.25, 0, 0);
 	m_cameraPos = glm::vec3(0, 15, -15);
 	m_controllingCamera = false;

@@ -32,11 +32,10 @@ float CEditView::m_viewZoom = 80;
 
 IModel* CEditView::m_cameraModel = nullptr;
 IModel* CEditView::m_tickModel = nullptr;
-void CEditView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
+CEditView::CEditView(bgfx::ViewId viewId, int width, int height, uint32_t clearColor, glm::vec3 editPlaneAngle) :
+	CBaseView(viewId, width, height, clearColor),
+	m_editPlaneAngle(editPlaneAngle)
 {
-	CBaseView::Init(viewId, width, height, clearColor);
-
-
 	m_shaderProgram = ShaderManager().GetShaderProgram(Shader::EDIT_VIEW_SHADER);
 	if(!m_cameraModel)
 		m_cameraModel = ModelManager().LoadModel("assets/camera.obj");

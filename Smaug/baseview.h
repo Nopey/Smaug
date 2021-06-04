@@ -5,7 +5,9 @@
 class CBaseView : public IBaseView
 {
 public:
-	virtual void Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor);
+	//virtual void Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor);
+	CBaseView(bgfx::ViewId viewId, int width, int height, uint32_t clearColor);
+	~CBaseView();
 
 	virtual void Draw(float dt);
 	virtual void Update(float dt, float mx, float my) {}
@@ -21,10 +23,10 @@ public:
 			bgfx::TextureHandle m_fbColorTexture;
 			bgfx::TextureHandle m_fbDepthTexture;
 		};
-		bgfx::TextureHandle m_fbTextures[2];
+		bgfx::TextureHandle m_fbTextures[2] = { BGFX_INVALID_HANDLE, BGFX_INVALID_HANDLE };
 	};
 
-	bgfx::FrameBufferHandle m_framebuffer;
+	bgfx::FrameBufferHandle m_framebuffer = BGFX_INVALID_HANDLE;
 
 	int m_width;
 	int m_height;

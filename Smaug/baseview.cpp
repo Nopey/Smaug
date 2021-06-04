@@ -1,7 +1,7 @@
 #include "baseview.h"
 #include "modelmanager.h"
 
-void CBaseView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
+CBaseView::CBaseView(bgfx::ViewId viewId, int width, int height, uint32_t clearColor)
 {
 	m_width = width;
 	m_height = height;
@@ -27,6 +27,17 @@ void CBaseView::Init(bgfx::ViewId viewId, int width, int height, uint32_t clearC
 	}
 
 	m_focused = false;
+}
+
+CBaseView::~CBaseView()
+{
+	if (m_framebuffer.idx != bgfx::kInvalidHandle)
+		bgfx::destroy(m_framebuffer);
+
+	if (m_fbColorTexture.idx != bgfx::kInvalidHandle)
+		bgfx::destroy(m_fbColorTexture);
+	if (m_fbDepthTexture.idx != bgfx::kInvalidHandle)
+		bgfx::destroy(m_fbDepthTexture);
 }
 
 void CBaseView::Draw(float dt)

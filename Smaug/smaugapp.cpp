@@ -26,7 +26,9 @@ static bgfx::RendererType::Enum ChooseRenderType()
 }
 
 CSmaugApp::CSmaugApp() :
-	bigg::Application("Smaug", 960, 720, ChooseRenderType())
+	bigg::Application("Smaug", 960, 720, ChooseRenderType()),
+	m_uiView(ViewID::MAIN_VIEW, 1024, 1024, 0x404040FF),
+	m_selectedView(ViewID::SELECTED_VIEW, 1024, 1024, 0x383838FF)
 {
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
@@ -34,8 +36,6 @@ CSmaugApp::CSmaugApp() :
 	//io.ConfigDockingWithShift = true;
 
 	defaultWorld();
-
-	m_uiView.Init(ViewID::MAIN_VIEW, 1024, 1024, 0x404040FF);
 
 	m_mouseLocked = false;
 	mFpsLock = 120;
