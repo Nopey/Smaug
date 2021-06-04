@@ -10,7 +10,6 @@ class IModel;
 class CEditView : public CBaseView
 {
 public:
-	// virtual void Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor);
 	CEditView(bgfx::ViewId viewId, int width, int height, uint32_t clearColor, glm::vec3 editPlaneAngle);
 	virtual void Update(float dt, float mx, float my);
 	virtual void Draw(float dt);

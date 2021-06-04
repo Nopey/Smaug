@@ -8,7 +8,6 @@ public:
 	CSelectedView(bgfx::ViewId viewId, int width, int height, uint32_t clearColor);
 	~CSelectedView();
 
-	// virtual void Init(bgfx::ViewId viewId, int width, int height, uint32_t clearColor);
 	virtual void Draw(float dt);
 	void SetSelection(CNodeRef node);
 	bool Show();
