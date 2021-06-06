@@ -3,16 +3,9 @@
 #include "meshtest.h"
 #include "log.h"
 
+#include <algorithm>
 #include <glm/geometric.hpp>
-
-// Move this to util or something?
-template<typename T>
-void swap(T& a, T& b)
-{
-	T temp = a;
-	a = b;
-	b = temp;
-}
+#include <debugbreak.h>
 
 ///////////////////////
 // Mesh face slicing //
@@ -21,120 +14,166 @@ void swap(T& a, T& b)
 // For use where we know which side's going to end up larger
 // Returns the new face
 
-face_t* sliceMeshPartFaceUnsafe(meshPart_t& mesh, std::vector<face_t*>& faceVec, face_t* face, vertex_t* start, vertex_t* end)
+static clasp_ref<face_t> sliceMeshPartFaceUnsafe(clasp_ref<meshPart_t> mesh, std::vector<clasp<face_t>>& faceVec, clasp_ref<face_t> face, vertex_t &start, vertex_t &end)
 {
-	face_t* newFace = new face_t;
-	
-	newFace->parent = &mesh;
+	SASSERT(&start != &end);
+
+	// Create new face, eventually over verts [end, start]
+	// (face will become [start, end])
+	faceVec.push_back(make_clasp<face_t>());
+	clasp_ref<face_t> newFace = faceVec.back();	
+	newFace->parent = mesh;
 	newFace->flags = face->flags;
-	faceVec.push_back(newFace);
 
-	halfEdge_t* heStart = start->edge;
-	halfEdge_t* heEnd   = end->edge;
+	// The halfedges leading out of the vertices
+	clasp_ref<halfEdge_t> heStart = start.edge, heEnd = end.edge;
 
-	
-	// Let's just let it keep end...
-	// We're totally stealing start though!
-	vertex_t* newEnd = new vertex_t{ end->vert, end->edge };
-
-	newFace->verts.push_back(newEnd);
-
-	// We need to steal from our old and add to our new
-	for (halfEdge_t* he = heEnd; he != heStart; he = he->next)
+	// newFace receives ownership of original vertices (end, start]
+	// and original halfEdges (heEnd, heStart]
+	for (clasp_ref<halfEdge_t> he = heEnd; he != heStart;)
 	{
+		he = he->next;
 		he->face = newFace;
-		newFace->verts.push_back(he->vert);
-		newFace->edges.push_back(he);
 	}
+	settleHECustody(face, newFace);
+	settleVertCustody(face, newFace);
 
-	// Set up our new HE from start to end on the small side
-	halfEdge_t* newHe = new halfEdge_t{ newEnd, nullptr, newFace, heEnd };
-	halfEdge_t* prevStart = newFace->edges[newFace->edges.size()-1];
-	prevStart->next = newHe;
-	prevStart->vert->edge = newHe;
-	newFace->edges.push_back(newHe);
+	// Create copy of heEnd for newFace
+	newFace->edges.push_back(make_clasp<halfEdge_t>(heEnd->vert, nullptr, newFace, heEnd->next));
+	// owned by newFace
+	auto newHeEnd = newFace->edges.back().borrow();
+	// ---- vice versa
+	face->edges.push_back(make_clasp<halfEdge_t>(heStart->vert, nullptr, face, heStart->next));
+	// owned by face
+	auto newHeStart = face->edges.back().borrow();
 
+	// Create end vertex for newFace, with newHeEnd
+	newFace->verts.push_back(make_clasp<vertex_t>(end.vert, newHeEnd));
+	// newFace's copy of the end vert
+	auto newEnd = newFace->verts.back().borrow();
+	// ---- vice versa
+	face->verts.push_back(make_clasp<vertex_t>(start.vert, newHeStart));
+	// face's copy of the start vert
+	auto newStart = face->verts.back().borrow();
 
-	// Abysmal
-	face->verts.clear();
-	face->edges.clear();
-
-	vertex_t* newStart = new vertex_t{ start->vert, heStart };
-	face->verts.push_back(newStart);
-	for (halfEdge_t* he = heStart; he != heEnd; he = he->next)
-	{
-		face->verts.push_back(he->vert);
-		face->edges.push_back(he);
-	}
-
-	// New HE for our larger half
-	halfEdge_t* newHeLarger = new halfEdge_t{ newStart, newHe, face, heStart };
-	newHe->pair = newHeLarger;
-	halfEdge_t* prevEnd = face->edges[face->edges.size() - 1];
-	prevEnd->next = newHeLarger;
-	prevEnd->vert->edge = newHeLarger;
-	face->edges.push_back(newHeLarger);
-
+	// heStart (owned by newFace) gets repurposed as the diagonal
+	heStart->vert = newEnd;
+	heStart->next = newHeEnd;
+	// ---- vice versa
+	heEnd->vert = newStart;
+	heEnd->next = newHeStart;
 
 	return newFace;
 }
 
+#if 0
 // This will subdivide a mesh's face from start to end
 // It will return the new face
 // This cut will only occur on ONE face
-face_t* sliceMeshPartFace(meshPart_t& mesh, std::vector<face_t*>& faceVec, face_t* face, vertex_t* start, vertex_t* end)
+clasp_ref<face_t> sliceMeshPartFace(clasp_ref<meshPart_t> mesh, std::vector<clasp<face_t>>& faceVec, clasp_ref<face_t> face, vertex_t& start, vertex_t& end)
 {
 	// No slice
-	if (start == end || !start || !end || !face)
+	if (&start == &end)
 		return face;
-
 
 	// Don't like this much...
 	int between = 0;
-	for(vertex_t* vert = start; vert != end; vert = vert->edge->vert)
-	{
+	for(vertex_t *vert = &start; vert != &end; vert = vert->edge.next->get() )
 		between++;
-	}
 
 	// Start should always be the clockwise start of the smaller part
 	if (between < face->edges.size() / 2.0f)
 	{
-		swap(start, end);
+		return sliceMeshPartFaceUnsafe(mesh, faceVec, face, end, start);
 	}
 
 	// Now that we know which side's larger, we can safely slice
 	return sliceMeshPartFaceUnsafe(mesh, faceVec, face, start, end);
 }
+#endif
+
+static void deleteVertFromEdge(halfEdge_t &edge)
+{
+	face_t &face = edge.face.deref();
+
+	{
+		auto found = std::find(face.verts.begin(), face.verts.end(), edge.vert);
+
+		SASSERT(found != std::end(face.verts));
+
+		// Move vertex we plan on deleting to the back
+		std::swap(face.verts.back(), *found);
+	}
+
+	// clear out our reference to the vert
+	// NOTE: Use edge->next->vert instead if we remove the optional marking from this field
+	edge.vert = {};
+
+	// destroy the vert
+	face.verts.pop_back();
+}
+
+static void deleteEdgeButNotItsVert( clasp_ref<halfEdge_t> &edge )
+{
+	if(!edge)
+		return;
+
+	face_t& face = edge->face.deref();
+
+	{
+		auto found = std::find(face.edges.begin(), face.edges.end(), edge);
+
+		SASSERT(found != std::end(face.edges));
+
+		// Move edge we plan on deleting to the back
+		std::swap(face.edges.back(), *found);
+	}
+
+
+	// clear out our reference to the edge
+	// NOTE: Use edge->next instead if we remove the optional marking from this field
+	edge = {};
+
+	// destroy the edge
+	face.edges.pop_back();
+}
+
 
 // This will REBUILD THE FACE!
 // The next TWO edges from stem will be deleted!
-halfEdge_t* fuseEdges(face_t* face, vertex_t* stem)
+static clasp_ref<halfEdge_t> fuseEdges(face_t &face, vertex_t &stem)
 {
 	// Fuse stem and it's next edge together
 	// Hate this. Make it better somehow...
-	
+
+	// This will definitely fall apart with less than 3.
+	SASSERT(face.edges.size() >= 3);
+
 	// Since something's already pointing to stem->edge, it's going to take the place of post->edge
-	halfEdge_t* replacer = stem->edge;
+	clasp_ref<halfEdge_t> replacer = stem.edge;
 	
+	// These two are optional so we can delete them partway through the function
 	// Edge immediately before the fuse
-	halfEdge_t* before = replacer->next;
+	clasp_ref<halfEdge_t> before = replacer->next;
 	// Edge immediately after the fuse
-	halfEdge_t* post = before->next;
+	clasp_ref<halfEdge_t> post = before->next;
 
+	// remove replacer->vert
+	deleteVertFromEdge(*replacer);
 
-	delete replacer->vert;
-	
 	// Are we perfectly stuck together?
-	if (closeTo(glm::distance(*before->vert->vert, *stem->vert), 0))
+	if (closeTo(glm::distance(*before->vert->vert, *stem.vert), 0))
 	{
-		// Clear out stuff to be fused
-		delete before->vert;
-	
 		// Link it
 		replacer->vert = post->vert;
 
 		replacer->next = post->next;
-		delete post;
+
+		// Delete the edges first, as they refer to the verts
+		deleteEdgeButNotItsVert(post);
+
+		// Clear out stuff to be fused
+		deleteVertFromEdge(*before);
 	}
 	else
 	{
@@ -144,13 +183,8 @@ halfEdge_t* fuseEdges(face_t* face, vertex_t* stem)
 		
 		replacer->next = post;
 	}
-	delete before;
 
-
-	// Rebuild the face. Yuck
-	face->verts.clear();
-	face->edges.clear();
-	faceFromLoop(replacer, face);
+	deleteEdgeButNotItsVert(before);
 
 	return replacer;
 }
@@ -160,6 +194,7 @@ halfEdge_t* fuseEdges(face_t* face, vertex_t* stem)
 // Mesh face triangulation //
 /////////////////////////////
 
+#if 0 // unused <3
 // Clean this all up!!
 // Takes in a mesh part and triangulates every face within the part
 // TODO: This might need a check for parallel lines!
@@ -215,6 +250,7 @@ void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 				if (triNormal.x == 0 && triNormal.y == 0 && triNormal.z == 0)
 				{
 					//SASSERT(0);
+					Log::Warn("Zero area triangle :tired_face:");
 
 					// Fuse v0 and end together 
 					fuseEdges(face, end);
@@ -265,24 +301,26 @@ void triangluateMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 	}
 
 }
+#endif
 
 // Not for use on concaves!
-void triangluateMeshPartConvexFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
+void triangluateMeshPartConvexFaces(clasp_ref<meshPart_t> mesh, std::vector<clasp<face_t>>& faceVec)
 {
+	// prevent reallocation during below loop, trying to prevent explosions
+	faceVec.reserve(faceVec.size()*2);
+
 	// As we'll be walking this, we wont want to walk over our newly created faces
 	// Store our len so we only get to the end of the predefined faces
 	size_t len = faceVec.size();
+	Log::Print("Len = %zd\n", len);
 	for (size_t i = 0; i < len; i++)
 	{
-		face_t* face = faceVec[i];
-		if (!face)
-			continue;
-		
+		auto &face = faceVec[i];
+
 		// Discard Tris
 		if (face->edges.size() < 4)
 			continue;
 
-		
 		// On odd numbers, we use start + 1, end instead of start, end - 1
 		// Makes it look a bit like we're fitting quads instead of tris
 		int alternate = 0;
@@ -291,45 +329,40 @@ void triangluateMeshPartConvexFaces(meshPart_t& mesh, std::vector<face_t*>& face
 		while (face->verts.size() > 3)
 		{
 			// Vert 0 will become our anchor for all new faces to connect to
-			vertex_t* end = face->verts[face->verts.size() - 1 - fmod(alternate, 2)];
-			vertex_t* v0 = end->edge->next->vert;
+			auto end = face->verts[face->verts.size() - 1 - fmod(alternate, 2)].borrow();
+			auto v0 = end->edge->next->vert;
 
 			// Wouldn't it just be better to implement a quick version for triangulate? We're doing a lot of slices? Maybe just a bulk slicer?
-			sliceMeshPartFaceUnsafe(mesh, faceVec, face, v0, end);
+			auto newFace = sliceMeshPartFaceUnsafe(mesh, faceVec, face, *v0, *end);
+			SASSERT(newFace->verts.size() == 3);
 
 			alternate++;
 		};
-
-		
 	}
-
+	Log::Print("Successfully triangulated one meshPart's convex faces..\n");
 }
 
 // This function fits convex faces to the concave face
 // It might be slow, bench it later
-void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
+void convexifyMeshPartFaces(clasp_ref<meshPart_t> mesh, std::vector<clasp<face_t>>& faceVec)
 {
 	
-	halfEdge_t gapFiller;
+	clasp<halfEdge_t> gapFiller = make_clasp<halfEdge_t>();
 	
 	// Get the norm of the face for later testing 
-	glm::vec3 faceNorm = mesh.normal;//faceNormal(&mesh);
+	glm::vec3 faceNorm = mesh->normal;//faceNormal(&mesh);
 	
 	size_t len = faceVec.size();
 	for (size_t i = 0; i < len; i++)
 	{
-		face_t* face = faceVec[i];
-		if (!face)
-			continue;
-
+		auto face = faceVec[i].borrow();
 
 		// Get the norm of the face for later testing 
 		//glm::vec3 faceNorm = faceNormal(face);
 
 		int sanity = 0;
 
-		vertex_t *vStart, *convexStart, *vert;
-		
+
 		// We only want to start cutting when our convexStart is a concave
 		bool startSlicing = false;
 		
@@ -342,15 +375,15 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 		if (face->edges.size() < 4)
 			continue;
 
-		vStart = face->verts.front();
-		convexStart = vStart;
-		vert = vStart;
+		clasp_ref<vertex_t> vStart = face->verts.front();
+		clasp_ref<vertex_t> convexStart = vStart;
+		clasp_ref<vertex_t> vert = vStart;
 		sanity = 0;
 		startSlicing = forgetConcConnect;
 		do
 		{
-			vertex_t* between = vert->edge->vert;
-			vertex_t* end = between->edge->vert;
+			clasp_ref<vertex_t> between = vert->edge->vert;
+			clasp_ref<vertex_t> end = between->edge->vert;
 
 			glm::vec3 edge1 = (*vert->vert) - (*between->vert);
 			glm::vec3 edge2 = (*between->vert) - (*end->vert);
@@ -362,7 +395,7 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 			{
 				//printf("%f dot\n", triDot);
 				//DebugDraw().HEFace(face, randColorHue(), 0.25, 1000);
-				// We got a zero area tri! Yuck!!
+				Log::Warn("We got a zero area tri! Yuck!!");
 				//SASSERT(0);
 				fuseEdges(face, vert);
 				// Fusing induces a change in edge count. Go back to the top 
@@ -415,18 +448,18 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 					// Patch up the mesh and perform a point test
 
 					// Shouldnt need to store between's edge's next...
-					halfEdge_t* tempHE = end->edge;
+					clasp_ref<halfEdge_t> tempHE = end->edge;
 
 					// Temp patch it
-					halfEdge_t* cse = convexStart->edge;
-					gapFiller.next = cse;
-					gapFiller.vert = convexStart;
+					clasp_ref<halfEdge_t> cse = convexStart->edge;
+					gapFiller->next = cse;
+					gapFiller->vert = convexStart;
 
-					end->edge = &gapFiller;
-					between->edge->next = &gapFiller;
+					end->edge = gapFiller;
+					between->edge->next = gapFiller;
 
 					// Loop over our remaining verts and check if in our convex fit
-					for (vertex_t* ooc = tempHE->vert; ooc != convexStart; ooc = ooc->edge->vert)
+					for (clasp_ref<vertex_t> ooc = tempHE->vert; ooc != convexStart; ooc = ooc->edge->vert)
 					{
 						if (pointInConvexLoopNoEdges(convexStart, *ooc->vert))
 						{
@@ -484,35 +517,27 @@ void convexifyMeshPartFaces(meshPart_t& mesh, std::vector<face_t*>& faceVec)
 
 
 	// Mark our creation as convex
-	for (auto f : faceVec)
+	for (auto &f : faceVec)
 		f->flags |= FaceFlags::FF_CONVEX;
 
 }
 
-void optimizeParallelEdges(meshPart_t* part, std::vector<face_t*>& faceVec)
+void optimizeParallelEdges(clasp_ref<meshPart_t> part, std::vector<clasp<face_t>>& faceVec)
 {
-
-	size_t len = faceVec.size();
-	for (size_t i = 0; i < len; i++)
+	for( auto &face : faceVec)
 	{
-		face_t* face = faceVec[i];
-		if (!face)
-			continue;
-
-		vertex_t* vStart, * vert;
-
 	startOfLoop:
-		// Discard Tris, they're already perfect
+		// Discard Tris, they're already perfect :flushed:
 		if (face->edges.size() < 4)
 			continue;
 
-		vStart = face->verts.front();
-		vert = vStart;
+		clasp_ref<vertex_t> vStart = face->verts.front();
+		clasp_ref<vertex_t> vert = vStart;
 
 		do
 		{
-			vertex_t* between = vert->edge->vert;
-			vertex_t* end = between->edge->vert;
+			clasp_ref<vertex_t> between = vert->edge->vert;
+			clasp_ref<vertex_t> end = between->edge->vert;
 
 			glm::vec3 edge1 = (*vert->vert) - (*between->vert);
 			glm::vec3 edge2 = (*between->vert) - (*end->vert);

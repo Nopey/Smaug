@@ -2,14 +2,6 @@
 #include "basicdraw.h"
 #include <GLFW/glfw3.h>
 
-
-class CDebugDraw::ITempItem
-{
-public:
-    virtual void Draw() = 0;
-    virtual bool Dead(float curTime) = 0;
-};
-
 #ifdef _DEBUG
 
 class CTempLine : public CDebugDraw::ITempItem
@@ -36,42 +28,40 @@ public:
 
 };
 
-
 void CDebugDraw::Line(glm::vec3 start, glm::vec3 end, glm::vec3 color, float width, float decay)
 {
     m_itemsToDraw.push_back(std::make_unique<CTempLine>(start,end,color,width,(float)glfwGetTime() + decay));
 }
 
 
-
-void CDebugDraw::HELoop(vertex_t* start, vertex_t* end, glm::vec3 color, float width, float decay)
+void CDebugDraw::HELoop(vertex_t const& start, vertex_t const& end, glm::vec3 color, float width, float decay)
 {
-    vertex_t* cur = start;
+    vertex_t const * cur = &start;
     do
     {
-        vertex_t* next = cur->edge->vert;
+        vertex_t const * next = cur->edge->vert.get();
         Line(*cur->vert, *next->vert, color, width, decay);
         cur = next;
-    } while (cur != end);
+    } while (cur != &end);
 }
 
-void CDebugDraw::HEFace(face_t* face, glm::vec3 color, float width, float decay)
+void CDebugDraw::HEFace(clasp_ref<face_t> face, glm::vec3 color, float width, float decay)
 {
     glm::vec3 offset = parentMesh(face)->origin;
 
-    vertex_t* cur = face->verts.front(), *end = cur;
+    vertex_t* cur = face->verts.front().get(), *end = cur;
     do
     {
-        vertex_t* next = cur->edge->vert;
+        vertex_t* next = cur->edge->vert.get();
         Line(*cur->vert + offset, *next->vert + offset, color, width, decay);
         cur = next;
     } while (cur != end);
 
 }
 
-void CDebugDraw::HEPart(meshPart_t* part, glm::vec3 color, float width, float decay)
+void CDebugDraw::HEPart(meshPart_t const& part, glm::vec3 color, float width, float decay)
 {
-    for (auto f : part->tris)
+    for (auto &f : part.tris)
         HEFace(f, color, width, decay);
 }
 
@@ -108,7 +98,7 @@ void CDebugDraw::AABB(aabb_t aabb, glm::vec3 color, float width, float decay)
 
 void CDebugDraw::Draw()
 {
-    float curtime = glfwGetTime();
+    float curtime = (float)glfwGetTime();
     
     for (int i = 0; i < m_itemsToDraw.size(); i++)
     {

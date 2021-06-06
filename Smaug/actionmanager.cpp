@@ -19,7 +19,7 @@ glm::vec3 GetSelectionPos(selectionInfo_t info)
 #endif
 
 	if (info.selected & ACT_SELECT_SIDE)
-		return info.node->Origin() + faceCenter(info.side);
+		return info.node->Origin() + faceCenter(*info.side);
 
 	if (info.selected & ACT_SELECT_NODE)
 		return info.node->Origin();
@@ -129,10 +129,10 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 		{
 			// Corner check
 			//for (int j = 0; j < node->m_sideCount; j++)
-			for (auto p : node->m_mesh.parts)
+			for (auto &p : node->m_mesh->parts)
 			{
 
-				for (auto v : p->verts)
+				for (auto &v : p->verts)
 				{
 					if (glm::distance(*v->vert, localMouse) <= 4
 					 && glm::distance(*v->edge->vert->vert, localMouse) <= 4)
@@ -150,7 +150,7 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 		{
 			bool foundSomething = false;
 			// Side's walls check
-			for (auto p : node->m_mesh.parts)
+			for (auto &p : node->m_mesh->parts)
 			{
 				// Are we on the side?
 				//mousePos.y = node->Origin().y;
@@ -184,7 +184,7 @@ bool CActionManager::FindFlags(glm::vec3 mousePos, selectionInfo_t& info, int fi
 					if (findFlags & ACT_SELECT_WALL)
 					{
 						// Which wall are we selecting?
-						for(auto f : p->faces)
+						for(auto &f : p->faces)
 						{
 							if (f->verts.size() == 3)
 							{

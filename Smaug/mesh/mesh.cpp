@@ -5,19 +5,19 @@
 #include <glm/geometric.hpp>
 
 // Gets the normal of the *next* vert
-glm::vec3 vertNextNormal(vertex_t* vert)
+glm::vec3 vertNextNormal(vertex_t const &vert)
 {
-	vertex_t* between = vert->edge->vert;
-	vertex_t* end = between->edge->vert;
+	vertex_t &between = vert.edge->vert;
+	vertex_t &end = between.edge->vert;
 
-	glm::vec3 edge1 = (*vert->vert) - (*between->vert);
-	glm::vec3 edge2 = (*between->vert) - (*end->vert);
+	glm::vec3 edge1 = (*vert.vert) - (*between.vert);
+	glm::vec3 edge2 = (*between.vert) - (*end.vert);
 	
 	return glm::cross(edge1, edge2);
 }
 
 // Returns the unnormalized normal of a face
-glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter)
+glm::vec3 faceNormal(face_t const &face, glm::vec3 *outCenter )
 {
 	// Not fond of this
 	// TODO: We should probably cache this data and/or add a quick route for triangulated faces!
@@ -27,40 +27,25 @@ glm::vec3 faceNormal(face_t* face, glm::vec3* outCenter)
 	if (outCenter)
 		*outCenter = center;
 
-	if (face->flags & FaceFlags::FF_CONVEX)
+	if (face.flags & FaceFlags::FF_CONVEX)
 	{
 		return convexFaceNormal(face);
 	}
 
 	glm::vec3 faceNormal = { 0,0,0 };
 
-	vertex_t* vs = face->verts.front(), * l = vs, * v = l->edge->vert;
+	vertex_t const &vs = *face.verts.front(), &l = vs, &v = l.edge->vert;
 	do
 	{
-		faceNormal += glm::cross((center - (*v->vert)), (*l->vert) - center);
-	} 	while (l != vs);
+		faceNormal += glm::cross(center - (*v.vert), (*l.vert) - center);
+	} while (&l != &vs);
 
 	return faceNormal;
 }
 
-glm::vec3 convexFaceNormal(face_t* face)
+glm::vec3 convexFaceNormal(face_t const &face)
 {
-	return vertNextNormal(face->verts.front());
-}
-
-
-void faceFromLoop(halfEdge_t* startEdge, face_t* faceToFill)
-{
-	halfEdge_t* he = startEdge;
-	do {
-		faceToFill->edges.push_back(he);
-		faceToFill->verts.push_back(he->vert);
-		
-		he->face = faceToFill;
-
-		he = he->next;
-	} while (he != startEdge);
-
+	return vertNextNormal(*face.verts.front());
 }
 
 /////////////////////
@@ -69,26 +54,24 @@ void faceFromLoop(halfEdge_t* startEdge, face_t* faceToFill)
 
 
 // Adds vertices to a mesh for use in face definition
-glm::vec3** addMeshVerts(mesh_t& mesh, glm::vec3* points, int pointCount)
+std::span<clasp<glm::vec3>> addMeshVerts(mesh_t& mesh, std::span<glm::vec3> points)
 {
 	size_t start = mesh.verts.size();
-	for (int i = 0; i < pointCount; i++)
+	for ( auto &point : points )
 	{
-		glm::vec3* v = new glm::vec3(points[i]);
-		mesh.verts.push_back(v);
+		mesh.verts.push_back(make_clasp<glm::vec3>(point));
 	}
-	return mesh.verts.data() + start;
+	return std::span(mesh.verts).subspan(start);
 }
 
 // Creates and defines a new face within a mesh
-void defineFace(face_t* face, CUArrayAccessor<glm::vec3*> vecs, int vecCount);
-meshPart_t* addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount)
+static void defineFace(clasp_ref<face_t> face, std::span<clasp_ref<glm::vec3>> vecs);
+clasp_ref<meshPart_t> addMeshFace(clasp_ref<mesh_t> mesh, std::span<clasp_ref<glm::vec3>> points)
 {
-	meshPart_t* mp = new meshPart_t;
-	mp->mesh = &mesh;
-	mesh.parts.push_back(mp);
+	mesh->parts.push_back(make_clasp<meshPart_t>(mesh));
+	auto mp = mesh->parts.back().borrow();
 
-	defineFace(mp, points, pointCount);
+	defineFace(mp, points);
 
 	return mp;
 }
@@ -96,27 +79,27 @@ meshPart_t* addMeshFace(mesh_t& mesh, glm::vec3** points, int pointCount)
 
 // Wires up all the HEs for this face
 // Does not triangulate
-void defineFace(face_t* face, CUArrayAccessor<glm::vec3*> vecs, int vecCount)
+static void defineFace(clasp_ref<face_t> face, std::span<clasp_ref<glm::vec3>> vecs)
 {
 	// Clear out our old data
-	for (auto v : face->verts)
-		if (v) delete v;
-	for (auto e : face->edges)
-		if (e) delete e;
 	face->verts.clear();
 	face->edges.clear();
 	
 	// Populate our face with HEs
-	vertex_t* lastVert = nullptr;
-	halfEdge_t* lastHe = nullptr;
-	for (int i = 0; i < vecCount; i++)
+	clasp_ref<vertex_t> lastVert;
+	clasp_ref<halfEdge_t> lastHe;
+	for (int i = 0; i < vecs.size(); i++)
 	{
 		// HE stems out of V
 
-		halfEdge_t* he = new halfEdge_t{};
+		face->edges.push_back(make_clasp<halfEdge_t>());
+		clasp_ref<halfEdge_t> he = face->edges.back();
+
 		he->face = face;
 		he->flags |= EdgeFlags::EF_OUTER;
-		vertex_t* v = new vertex_t{ vecs[i], he };
+
+		face->verts.push_back(make_clasp<vertex_t>(vecs[i], he));
+		clasp_ref<vertex_t> v = face->verts.back();
 
 		// Should never be a situation where these both arent null or something
 		// If one is null, something's extremely wrong
@@ -128,8 +111,6 @@ void defineFace(face_t* face, CUArrayAccessor<glm::vec3*> vecs, int vecCount)
 
 		lastHe = he;
 		lastVert = v;
-		face->edges.push_back(he);
-		face->verts.push_back(v);
 	}
 
 	// Link up our last HE
@@ -140,67 +121,51 @@ void defineFace(face_t* face, CUArrayAccessor<glm::vec3*> vecs, int vecCount)
 	}
 }
 
-void defineMeshPartFaces(meshPart_t& mesh)
+void defineMeshPartFaces(clasp_ref<meshPart_t> mesh)
 {
 	// Clear out our old faces
-	if (mesh.sliced)
-	{
-		delete mesh.sliced;
-		mesh.sliced = nullptr;
-	}
-	for (auto f : mesh.tris)
-		delete f;
-	for (auto f : mesh.collision)
-		delete f;
-	mesh.collision.clear();
-	mesh.tris.clear();
+	mesh->collision.clear();
+	mesh->tris.clear();
+	mesh->sliced = {};
 
-	if (mesh.verts.size() == 0)
+	if (mesh->verts.size() == 0)
 		return;
 
 	// Create a face clone of the part
-	face_t* f = new face_t;
-	cloneFaceInto(&mesh, f);
-	f->parent = &mesh;
+	mesh->collision.push_back(make_clasp<face_t>());
+	auto f = mesh->collision.back().borrow();
+	cloneFaceInto(mesh, f);
+	f->parent = mesh;
 	f->flags = FaceFlags::FF_NONE;
-	mesh.collision.push_back(f);
 	
 	// Mark our edges
-	for (auto e : f->edges)
+	for (auto &e : f->edges)
 		e->flags |= EdgeFlags::EF_PART_EDGE;
 
 	// Compute our normal
-	mesh.normal = glm::normalize(faceNormal(&mesh));
+	mesh->normal = glm::normalize(faceNormal(mesh));
 
 }
-// Terrible
-glm::vec3*& vertVectorAccessor(void* vec, size_t i)
-{
-	std::vector<vertex_t*>* verts = (std::vector<vertex_t*>*)vec;
-	return verts->at(i)->vert;
-}
 
-void cloneFaceInto(face_t* in, face_t* cloneOut)
+void cloneFaceInto(face_t &in, clasp_ref<face_t> cloneOut)
 {
 	// Clear out our old data
-	for (auto v : cloneOut->verts)
-		if (v) delete v;
-	for (auto e : cloneOut->edges)
-		if (e) delete e;
 	cloneOut->verts.clear();
 	cloneOut->edges.clear();
 
-	vertex_t*   lastCloneVert = nullptr;
-	halfEdge_t* lastCloneEdge = nullptr;
+	clasp_ref<vertex_t>   lastCloneVert;
+	clasp_ref<halfEdge_t> lastCloneEdge;
 
-	vertex_t* vs = in->verts.front(), *v = vs;
+	clasp_ref<vertex_t> vs = in.verts.front(), v = vs;
 	do
 	{
 		// Clone this vert and the edge that stems out of it
-		halfEdge_t* ch = new halfEdge_t;
+		cloneOut->edges.push_back(make_clasp<halfEdge_t>());
+		clasp_ref<halfEdge_t> ch = cloneOut->edges.back();
 		ch->face = cloneOut;
 		ch->flags = v->edge->flags;
-		vertex_t* cv = new vertex_t{v->vert, ch};
+		cloneOut->verts.push_back(make_clasp<vertex_t>(v->vert, ch));
+		clasp_ref<vertex_t> cv = cloneOut->verts.back();
 		
 		if (lastCloneVert)
 		{
@@ -208,8 +173,6 @@ void cloneFaceInto(face_t* in, face_t* cloneOut)
 			lastCloneEdge->vert = cv;
 		}
 
-		cloneOut->verts.push_back(cv);
-		cloneOut->edges.push_back(ch);
 
 		lastCloneVert = cv;
 		lastCloneEdge = ch;
@@ -223,8 +186,8 @@ void cloneFaceInto(face_t* in, face_t* cloneOut)
 		lastCloneEdge->vert = cloneOut->verts.front();
 	}
 
-	cloneOut->flags = in->flags;
-	cloneOut->parent = in->parent;
+	cloneOut->flags = in.flags;
+	cloneOut->parent = in.parent;
 }
 
 aabb_t addPointToAABB(aabb_t aabb, glm::vec3 point)
@@ -247,15 +210,15 @@ aabb_t addPointToAABB(aabb_t aabb, glm::vec3 point)
 }
 
 
-unsigned int edgeLoopCount(vertex_t* sv)
+unsigned int edgeLoopCount(vertex_t& sv)
 {
 	unsigned int i = 0;
-	vertex_t* v = sv;
+	vertex_t& v = sv;
 	do
 	{
 		i++;
-		v = v->edge->vert;
-	} while (v != sv);
+		v = *v.edge->vert;
+	} while (&v != &sv);
 	return i;
 }
 
@@ -264,7 +227,7 @@ aabb_t meshAABB(mesh_t& mesh)
 
 	glm::vec3 max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
 	glm::vec3 min = { FLT_MAX, FLT_MAX, FLT_MAX };
-	for (auto v : mesh.verts)
+	for (auto &v : mesh.verts)
 	{
 		if (v->x > max.x)
 			max.x = v->x;
@@ -288,7 +251,7 @@ void recenterMesh(mesh_t& mesh)
 {
 	// Recenter the origin
 	glm::vec3 averageOrigin = glm::vec3(0, 0, 0);
-	for(auto v : mesh.verts)
+	for(auto &v : mesh.verts)
 	{
 		averageOrigin += *v;
 	}
@@ -296,57 +259,162 @@ void recenterMesh(mesh_t& mesh)
 
 	// Shift the vertexes
 	mesh.origin += averageOrigin;
-	for (auto v : mesh.verts)
+	for (auto &v : mesh.verts)
 	{
 		*v -= averageOrigin;
 	}
 }
 
-glm::vec3 faceCenter(face_t* face)
+glm::vec3 faceCenter(face_t const &face)
 {
 	// Center of face
 	glm::vec3 center = { 0,0,0 };
-	for (auto v : face->verts)
+	for (auto const &v : face.verts)
 		center += *v->vert;
-	center /= face->verts.size();
+	center /= face.verts.size();
 
 	return center;
 }
 
-face_t::~face_t()
+void settleHECustody(clasp_ref<face_t> face, clasp_ref<face_t> newFace)
 {
-	for (auto e : edges)
-		delete e;
-	for (auto v : verts)
-		delete v;
+	for (int i = 0; i < face->edges.size(); i++)
+	{
+		auto& he = face->edges[i];
+
+		// This assertion is failing atm.. :(
+		SASSERT(he && (he->face.get() == face.get() || he->face.get() == newFace.get()));
+
+		if (he->face.get() == newFace.get())
+		{
+			// Move ownership of this halfEdge to the other vector
+			// AjPau5QYtYs
+
+			newFace->edges.push_back(std::move(he));
+			// remove he from face->edges
+			std::swap(he, face->edges.back());
+			face->edges.pop_back();
+			// keep iterator from misbehaving
+			i--;
+		}
+	}
 }
 
-meshPart_t::~meshPart_t()
+
+void settleVertCustody(clasp_ref<face_t> face, clasp_ref<face_t> newFace)
 {
-	if(sliced)
-		delete sliced;
+	for (int i = 0; i < face->verts.size(); i++)
+	{
+		auto& v = face->verts[i];
 
-	for (auto f : collision)
-		delete f;
+		// This assertion is failing atm.. :(
+		SASSERT(v && v->edge && (v->edge->face.get() == face.get() || v->edge->face.get() == newFace.get()));
 
-	for (auto f : tris)
-		delete f;
+		if (v->edge->face.get() == newFace.get())
+		{
+			// Move ownership of this vert to the other vector
+
+			newFace->verts.push_back(std::move(v));
+			// remove he from face->edges
+			std::swap(v, face->verts.back());
+			face->verts.pop_back();
+			// keep iterator from misbehaving
+			i--;
+		}
+	}
 }
 
-mesh_t::~mesh_t()
+void graphFace(clasp_ref<face_t> tasty, char const *filename_postfix)
 {
-	for (auto p : parts)
-		delete p;
+	char filename[256];
+	sprintf_s(filename, "out_%p%s.dot", tasty.get(), filename_postfix);
 
-	for (auto v : verts)
-		delete v;
+	FILE* fout;
+	SASSERT(!fopen_s(&fout, filename, "w"));
+	if (!fout) return;
+	fprintf(fout, "digraph face {\n");
+
+	// Edges
+	fprintf(fout, "\tsubgraph edges {\n");
+	fprintf(fout, "\t\tlabel = \"Edges\";\n");
+	fprintf(fout, "\t\tnode [color = blue];\n");
+	for (auto& e : tasty->edges)
+	{
+		fprintf(fout, "\t\t\"edge%p\";\n", e.get());
+	}
+	fprintf(fout, "\t}\n");
+
+	// Verts
+	fprintf(fout, "\tsubgraph verts {\n");
+	fprintf(fout, "\t\tlabel = \"Verts\";\n");
+	fprintf(fout, "\t\tcolor = red;\n");
+	fprintf(fout, "\t\tnode [color = red];\n");
+	for (auto& v : tasty->verts)
+	{
+		fprintf(fout, "\t\t\"vert%p\";\n", v.get());
+	}
+	fprintf(fout, "\t}\n");
+
+	// Edge->Edge relations
+	fprintf(fout, "\n");
+	for (auto& e : tasty->edges)
+	{
+		fprintf(fout, "\t\"edge%p\" -> \"edge%p\";\n", e.get(), e->next.get());
+	}
+
+	// Edge->Vert relations
+	fprintf(fout, "\n");
+	for (auto& e : tasty->edges)
+	{
+		fprintf(fout, "\t\"edge%p\" -> \"vert%p\";\n", e.get(), e->vert.get());
+	}
+
+	// Vert->Edge relations
+	fprintf(fout, "\n");
+	for (auto& v : tasty->verts)
+	{
+		fprintf(fout, "\t\"vert%p\" -> \"edge%p\";\n", v.get(), v->edge.get());
+	}
+
+	fprintf(fout, "}\n");
+	fclose(fout);
 }
 
-slicedMeshPartData_t::~slicedMeshPartData_t()
+template<>
+void breakClaspCycles(face_t& f)
 {
-	for (auto f : collision)
-		delete f;
+	breakClaspCycles(f.edges);
+	breakClaspCycles(f.parent);
+}
 
-	for (auto f : faces)
-		delete f;
+template<>
+void breakClaspCycles(meshPart_t& p)
+{
+	breakClaspCycles(p.tris);
+	breakClaspCycles(p.collision);
+	if (p.sliced)
+		breakClaspCycles(p.sliced);
+	breakClaspCycles((face_t&)p);
+}
+
+template<>
+void breakClaspCycles(halfEdge_t& he)
+{
+	breakClaspCycles(he.face);
+	breakClaspCycles(he.vert);
+	breakClaspCycles(he.next);
+	breakClaspCycles(he.pair);
+}
+
+template<>
+void breakClaspCycles(vertex_t& v)
+{
+	breakClaspCycles(v.edge);
+	breakClaspCycles(v.vert);
+}
+
+template<>
+void breakClaspCycles(cuttableMesh_t& c)
+{
+	breakClaspCycles( (face_t&)c );
 }

@@ -84,16 +84,16 @@ bool testPointInAABB(glm::vec3 point, aabb_t aabb, float aabbBloat);
 bool testAABBInAABB(aabb_t a, aabb_t b, float aabbBloat = 0.0f);
 
 testLineLine_t testLineLine(line_t a, line_t b, float tolerance = 0.01f);
-inline testLineLine_t testLineLine(halfEdge_t* a, halfEdge_t* b, glm::vec3 aOrigin, glm::vec3 bOrigin, float tolerance = 0.01f)
+inline testLineLine_t testLineLine(halfEdge_t const &a, halfEdge_t const &b, glm::vec3 aOrigin, glm::vec3 bOrigin, float tolerance = 0.01f)
 {
-	glm::vec3 aStem = *a->vert->vert;
-	glm::vec3 bStem = *b->vert->vert;
+	glm::vec3 aStem = *a.vert->vert;
+	glm::vec3 bStem = *b.vert->vert;
 
-	return testLineLine({aStem + aOrigin, *a->next->vert->vert - aStem}, { bStem + bOrigin, *b->next->vert->vert - bStem }, tolerance);
+	return testLineLine({aStem + aOrigin, *a.next->vert->vert - aStem}, { bStem + bOrigin, *b.next->vert->vert - bStem }, tolerance);
 }
 
 
-testRayPlane_t pointOnPartLocal(meshPart_t* part, glm::vec3 p);
+testRayPlane_t pointOnPartLocal(meshPart_t const& part, glm::vec3 p);
 
 // Wish this could be a template...
 bool testPointInTriNoEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2);

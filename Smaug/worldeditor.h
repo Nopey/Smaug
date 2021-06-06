@@ -15,6 +15,7 @@
 //    these allow the edit history to function without imploding.
 //  - If you need more than 65k nodes with 65k parts and 65k hes per part, please let me know
 
+// TODO: These should probably be enums or enum classes, rather than typedefs+defines
 typedef uint16_t nodeId_t;
 #define MAX_NODE_ID UINT16_MAX
 #define INVALID_NODE_ID MAX_NODE_ID
@@ -53,12 +54,13 @@ class CNodeMeshPartRef
 {
 public:
 	CNodeMeshPartRef();
-	CNodeMeshPartRef(meshPart_t* part, CNodeRef node);
+	CNodeMeshPartRef(meshPart_t &part, CNodeRef node);
 
 	const bool IsValid();
 
 	meshPart_t* operator->() const;
 	operator meshPart_t* () const;
+	operator meshPart_t const & () const;
 	void operator=(const CNodeMeshPartRef& ref);
 
 private:
@@ -71,7 +73,7 @@ class CNodeHalfEdgeRef
 {
 public:
 	CNodeHalfEdgeRef();
-	CNodeHalfEdgeRef(halfEdge_t* he, CNodeRef node);
+	CNodeHalfEdgeRef(halfEdge_t &he, CNodeRef node);
 
 	const bool IsValid();
 
@@ -91,7 +93,7 @@ class CNodeVertexRef
 {
 public:
 	CNodeVertexRef();
-	CNodeVertexRef(vertex_t* vertex, CNodeRef node);
+	CNodeVertexRef(vertex_t &vertex, CNodeRef node);
 
 	bool IsValid();
 
@@ -127,7 +129,7 @@ namespace std
 class CNode
 {
 public:
-	CNode(cuttableMesh_t &&);
+	CNode(clasp<cuttableMesh_t> &&);
 
 	void PreviewUpdate();
 	void PreviewUpdateThisOnly();
@@ -142,7 +144,7 @@ public:
 	// Local to node's origin
 	aabb_t GetLocalAABB() const { return m_aabb; }
 
-	glm::vec3 Origin() const { return m_mesh.origin; }
+	glm::vec3 Origin() const { return m_mesh->origin; }
 
 	void SetVisible(bool visible) { m_visible = visible; }
 	bool IsVisible() const { return m_visible; }
@@ -158,7 +160,7 @@ protected:
 	void CalculateAABB();
 public:
 
-	cuttableMesh_t m_mesh;
+	clasp<cuttableMesh_t> m_mesh;
 	CMeshRenderer m_renderData;
 	
 	std::unordered_set<CNodeRef> m_cutting;

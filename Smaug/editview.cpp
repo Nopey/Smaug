@@ -77,7 +77,7 @@ void CEditView::Update(float dt, float mx, float my)
 	}
 
 	if (m_viewZoom <= 0)
-		m_viewZoom = 0.01;
+		m_viewZoom = 0.01f;
 
 
 	// View panning
@@ -139,7 +139,7 @@ void CEditView::Draw(float dt)
 
 	GetWorldRenderer().Draw2D(m_viewId, Shader::WORLD_PREVIEW_SHADER);
 	
-	float t = glfwGetTime();
+	// float t = (float) glfwGetTime();
 
 	for (auto const & [_, node] : GetWorldEditor().m_nodes)
 	{
@@ -158,7 +158,7 @@ void CEditView::Draw(float dt)
 	glm::vec3 camAngle = GetApp().m_uiView.m_previewView.m_cameraAngle;
 	glm::vec3 camPos = GetApp().m_uiView.m_previewView.m_cameraPos;
 
-	m_cameraModel->Render(camPos, camAngle, glm::vec3(2.5));
+	m_cameraModel->Render(camPos, camAngle, glm::vec3(2.5f));
 	
 	// Grid gets drawn last. Figure out transparency!
 	Grid().Draw({ width, height }, m_cameraPos, m_editPlaneAngle, m_focused, up * -200.0f);

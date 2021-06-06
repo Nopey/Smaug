@@ -21,26 +21,26 @@ char* saveWorld()
 		snprintf(buf, sizeof(buf), "%d", n.first);
 		node->Add("id", buf);
 
-		glm::vec3 origin = n.second->m_mesh.origin;
+		glm::vec3 origin = n.second->m_mesh->origin;
 		snprintf(buf, sizeof(buf), "%a %a %a", origin.x, origin.y, origin.z);
 		node->Add("origin", buf);
 
-		auto vertList = n.second->m_mesh.verts;
+		auto vertList = n.second->m_mesh->verts;
 
 		KeyValue* verts = node->AddNode("verts");
-		for (auto v : vertList)
+		for (auto &v : vertList)
 		{
 			snprintf(buf, sizeof(buf), "%a %a %a", v->x, v->y, v->z);
 			verts->Add("vert", buf);
 		}
 
 		KeyValue* parts = node->AddNode("parts");
-		for (auto p : n.second->m_mesh.parts)
+		for (auto &p : n.second->m_mesh->parts)
 		{
 			if (p->verts.size() == 0)
 				continue;
 
-			vertex_t* v = p->verts.front(), *vs = v;
+			clasp_ref<vertex_t> v = p->verts.front(), vs = v;
 			do
 			{
 				int idx = 0;
@@ -160,16 +160,16 @@ void loadWorld(char* input)
 			// Create the node out of the data we snatched
 			if (parts.size() != 0 && verts.size() != 0)
 			{
-				cuttableMesh_t mesh;
-				mesh.origin = origin;
+				clasp<cuttableMesh_t> mesh = make_clasp<cuttableMesh_t>();
+				mesh->origin = origin;
 
-				auto& vertList = mesh.verts;
-				for (auto v : verts)
-					vertList.push_back(new glm::vec3{v});
-				for (auto p : parts)
+				auto& vertList = mesh->verts;
+				for (auto &v : verts)
+					vertList.push_back(make_clasp<glm::vec3>(v));
+				for (auto &p : parts)
 				{
-					std::vector<glm::vec3*> faceVerts;
-					for (auto v : p)
+					std::vector<clasp_ref<glm::vec3>> faceVerts;
+					for (auto &v : p)
 					{
 						if (v >= vertList.size())
 						{
@@ -177,7 +177,7 @@ void loadWorld(char* input)
 						}
 						faceVerts.push_back(vertList[v]);
 					}
-					addMeshFace(mesh, faceVerts.data(), faceVerts.size());
+					addMeshFace(mesh.borrow(), faceVerts);
 				}
 
 				auto node = std::make_unique<CNode>(std::move(mesh));
@@ -206,8 +206,8 @@ void defaultWorld()
 {
 	resetWorld();
 	CNode* node = GetWorldEditor().CreateQuad();
-	node->m_mesh.origin = glm::vec3(0, 4, 16);
-	for (auto v : node->m_mesh.verts)
+	node->m_mesh->origin = glm::vec3(0, 4, 16);
+	for (auto &v : node->m_mesh->verts)
 		*v = { v->x * 8, v->y * 4, v->z * 8 };
 	node->Update();
 }

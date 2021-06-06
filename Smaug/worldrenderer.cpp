@@ -217,7 +217,7 @@ void CNodeRenderData::Shutdown()
 
 glm::vec3 nodeColor(CNode* node)
 {
-	glm::vec3 origin = node->m_mesh.origin;
+	glm::vec3 origin = node->m_mesh->origin;
 	float mag = glm::length(origin);
 	origin = glm::normalize(origin);
 	float theta = atan2(origin.z, origin.x) + PI;

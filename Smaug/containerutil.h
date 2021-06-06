@@ -56,7 +56,9 @@ class CUArrayAccessor
 {
 	typedef T& (*accessor_t)(void*, size_t);
 public:
+	[[deprecated]] // please, no -Magnus
 	CUArrayAccessor(T* arr) : m_arr(arr), m_f(&CUArrayAccessor<T>::normalArrayAccessor) { }
+	[[deprecated]] // please, no -Magnus
 	CUArrayAccessor(void* arr, accessor_t f) : m_arr(arr), m_f(f) { }
 
 	T& operator[](size_t i) { return m_f(m_arr, i); }

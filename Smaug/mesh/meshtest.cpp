@@ -1,17 +1,17 @@
 #include "meshtest.h"
 #include <glm/geometric.hpp>
 
-bool pointInConvexMeshPart(meshPart_t* part, glm::vec3 pos)
+bool pointInConvexMeshPart(meshPart_t const& part, glm::vec3 pos)
 {
-	for (auto f : part->collision)
+	for (auto &f : part.collision)
 		if(pointInConvexMeshFace(f, pos))
 			return true;
 	return false;
 }
 
-bool pointInConvexMeshPartNoEdges(meshPart_t* part, glm::vec3 pos)
+bool pointInConvexMeshPartNoEdges(meshPart_t const& part, glm::vec3 pos)
 {
-	for (auto f : part->collision)
+	for (auto &f : part.collision)
 		if (pointInConvexLoopNoEdges(f->verts.front(), pos))
 			return true;
 	return false;
@@ -20,16 +20,17 @@ bool pointInConvexMeshPartNoEdges(meshPart_t* part, glm::vec3 pos)
 
 
 template<bool testEdges>
-bool pointInConvexLoop(vertex_t* vert, glm::vec3 pos)
+bool pointInConvexLoop(vertex_t const& vert, glm::vec3 pos)
 {
-	vertex_t* vs = vert, * v = vs, * v1 = vs->edge->vert, * v2 = v1->edge->vert;
+	// ssshhhhh it's late and I'm not rewriting everything to dodge pointers
+	vertex_t const* vs = &vert, * v = vs, * v1 = vs->edge->vert.get(), * v2 = v1->edge->vert.get();
 
 	// Get the normal
 	glm::vec3 norm = vertNextNormal(vert);
 
 	do
 	{	
-		vertex_t* next = v->edge->vert;
+		vertex_t* next = v->edge->vert.get();
 
 		glm::vec3 delta = *next->vert - *v->vert;
 		glm::vec3 perp = glm::cross(delta, norm);
@@ -55,23 +56,22 @@ bool pointInConvexLoop(vertex_t* vert, glm::vec3 pos)
 	return true;
 }
 
-bool pointInConvexLoop(vertex_t* vert, glm::vec3 pos) { return pointInConvexLoop<true>(vert, pos); }
-bool pointInConvexLoopNoEdges(vertex_t* vert, glm::vec3 pos) { return pointInConvexLoop<false>(vert, pos); }
+bool pointInConvexLoop(vertex_t const& vert, glm::vec3 pos) { return pointInConvexLoop<true>(vert, pos); }
+bool pointInConvexLoopNoEdges(vertex_t const& vert, glm::vec3 pos) { return pointInConvexLoop<false>(vert, pos); }
 
 template<bool ignoreNonOuterEdges>
-pointInConvexTest_t pointInConvexLoopQuery(vertex_t* vert, glm::vec3 pos)
+pointInConvexTest_t pointInConvexLoopQuery(vertex_t const &vert, glm::vec3 pos)
 {
 	pointInConvexTest_t test;
 	
-	vertex_t* vs = vert, * v = vs, * v1 = vs->edge->vert, * v2 = v1->edge->vert;
+	vertex_t const *vs = &vert, *v = vs, *v1 = vs->edge->vert.get(), * v2 = v1->edge->vert.get();
 
 	// Get the normal
 	glm::vec3 norm = vertNextNormal(vert);
 
 	do
 	{
-		
-		vertex_t* next = v->edge->vert;
+		vertex_t* next = v->edge->vert.get();
 
 		glm::vec3 delta = *next->vert - *v->vert;
 		glm::vec3 perp = glm::cross(delta, norm);
@@ -99,12 +99,12 @@ pointInConvexTest_t pointInConvexLoopQuery(vertex_t* vert, glm::vec3 pos)
 }
 
 
-pointInConvexTest_t pointInConvexLoopQuery(vertex_t* vert, glm::vec3 pos)
+pointInConvexTest_t pointInConvexLoopQuery(vertex_t& vert, glm::vec3 pos)
 {
 	return pointInConvexLoopQuery<false>(vert, pos);
 }
 
-pointInConvexTest_t pointInConvexLoopQueryIgnoreNonOuterEdges(vertex_t* vert, glm::vec3 pos)
+pointInConvexTest_t pointInConvexLoopQueryIgnoreNonOuterEdges(vertex_t& vert, glm::vec3 pos)
 {
 	return pointInConvexLoopQuery<true>(vert, pos);
 }

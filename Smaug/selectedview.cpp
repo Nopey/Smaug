@@ -42,7 +42,7 @@ void CSelectedView::Draw(float dt)
 	{
 		
 		float distance = m_aabbLength;
-		glm::vec3 origin = m_selectedNode->m_mesh.origin;
+		glm::vec3 origin = m_selectedNode->m_mesh->origin;
 		glm::mat4 view = glm::lookAt(glm::vec3(cos(time) * -distance, distance, sin(time) * distance) + origin, origin, glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 proj = glm::perspective(glm::radians(60.0f), m_aspectRatio, 0.1f, 800.0f);
 		bgfx::setViewTransform(m_viewId, &view[0][0], &proj[0][0]);
@@ -114,7 +114,7 @@ bool CSelectedView::Show()
 			{
 				m_selectedNode->SetVisible(vis);
 			}
-			ImGui::DragFloat3("Origin", reinterpret_cast<float*>(&m_selectedNode->m_mesh.origin));
+			ImGui::DragFloat3("Origin", reinterpret_cast<float*>(&m_selectedNode->m_mesh->origin));
 
 		}
 	}

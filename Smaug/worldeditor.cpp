@@ -2,6 +2,7 @@
 #include "raytest.h"
 #include "tessellate.h"
 #include "slice.h"
+#include "mesh.h"
 #include "log.h"
 
 #include <glm/geometric.hpp>
@@ -22,12 +23,12 @@ void CNodeRef::operator=(const CNodeRef& ref) { m_targetId = ref.m_targetId;}
 
 
 CNodeMeshPartRef::CNodeMeshPartRef() : m_partId(INVALID_MESH_ID), m_node(INVALID_NODE_ID) {}
-CNodeMeshPartRef::CNodeMeshPartRef(meshPart_t* part, CNodeRef node) : CNodeMeshPartRef()
+CNodeMeshPartRef::CNodeMeshPartRef(meshPart_t &part, CNodeRef node) : CNodeMeshPartRef()
 {
-	if (!node.IsValid() || !part)
+	if (!node.IsValid())
 		return;
 
-	std::vector<meshPart_t*>& parts = node->m_mesh.parts;
+	std::vector<clasp<meshPart_t>>& parts = node->m_mesh->parts;
 	auto f = std::find(parts.begin(), parts.end(), part);
 	if (f != parts.end())
 	{
@@ -46,17 +47,23 @@ const bool CNodeMeshPartRef::IsValid()
 
 meshPart_t* CNodeMeshPartRef::operator->() const
 {
-	if(m_node->m_mesh.parts.size() > m_partId)
-		return m_node->m_mesh.parts[m_partId];
+	if(m_node->m_mesh->parts.size() > m_partId)
+		return m_node->m_mesh->parts[m_partId].get();
 	return nullptr;
 }
 
 CNodeMeshPartRef::operator meshPart_t* () const
 {
-	if (m_node->m_mesh.parts.size() > m_partId)
-		return m_node->m_mesh.parts[m_partId];
+	if (m_node->m_mesh->parts.size() > m_partId)
+		return m_node->m_mesh->parts[m_partId].get();
 	return nullptr;
 }
+
+CNodeMeshPartRef::operator meshPart_t const & () const
+{
+	return **this;
+}
+
 
 void CNodeMeshPartRef::operator=(const CNodeMeshPartRef& ref)
 {
@@ -68,13 +75,13 @@ void CNodeMeshPartRef::operator=(const CNodeMeshPartRef& ref)
 // Half Edge Reference
 CNodeHalfEdgeRef::CNodeHalfEdgeRef() : m_heId(MAX_MESH_ID), m_part() {}
 
-CNodeHalfEdgeRef::CNodeHalfEdgeRef(halfEdge_t* he, CNodeRef node) : CNodeHalfEdgeRef()
+CNodeHalfEdgeRef::CNodeHalfEdgeRef(halfEdge_t &he, CNodeRef node) : CNodeHalfEdgeRef()
 {
-	if (!node.IsValid() || !he)
+	if (!node.IsValid())
 		return;
-	m_part = { (meshPart_t*)he->face, node };
+	m_part = { he.face.cast<meshPart_t>(), node };
 
-	std::vector<halfEdge_t*>& edges = m_part->edges;
+	auto& edges = m_part->edges;
 	auto f = std::find(edges.begin(), edges.end(), he);
 	if (f != edges.end())
 	{
@@ -93,14 +100,14 @@ const bool CNodeHalfEdgeRef::IsValid()
 halfEdge_t* CNodeHalfEdgeRef::operator->() const
 {
 	if(m_part && m_part->edges.size() > m_heId)
-		return m_part->edges[m_heId];
+		return m_part->edges[m_heId].get();
 	return nullptr;
 }
 
 CNodeHalfEdgeRef::operator halfEdge_t* () const
 {
 	if (m_part && m_part->edges.size() > m_heId)
-		return m_part->edges[m_heId];
+		return m_part->edges[m_heId].get();
 	return nullptr;
 }
 
@@ -111,14 +118,14 @@ void CNodeHalfEdgeRef::operator=(const CNodeHalfEdgeRef& ref)
 }
 
 
-CNodeVertexRef::CNodeVertexRef() : m_vertId(MAX_MESH_ID), m_part(nullptr, MAX_MESH_ID) {}
-CNodeVertexRef::CNodeVertexRef(vertex_t* vertex, CNodeRef node) : CNodeVertexRef()
+CNodeVertexRef::CNodeVertexRef() : m_vertId(MAX_MESH_ID), m_part() {}
+CNodeVertexRef::CNodeVertexRef(vertex_t &vertex, CNodeRef node) : CNodeVertexRef()
 {
-	if (!node.IsValid() || !vertex)
+	if (!node.IsValid())
 		return;
-	m_part = { (meshPart_t*)vertex->edge->face, node };
+	m_part = { vertex.edge->face.cast<meshPart_t>(), node };
 
-	std::vector<vertex_t*>& verts = m_part->verts;
+	std::vector<clasp<vertex_t>>& verts = m_part->verts;
 	auto f = std::find(verts.begin(), verts.end(), vertex);
 	if (f != verts.end())
 	{
@@ -137,14 +144,14 @@ bool CNodeVertexRef::IsValid()
 vertex_t* CNodeVertexRef::operator->() const
 {
 	if (m_part && m_part->verts.size() > m_vertId)
-		return m_part->verts[m_vertId];
+		return m_part->verts[m_vertId].get();
 	return nullptr;
 }
 
 CNodeVertexRef::operator vertex_t* () const
 {
 	if (m_part && m_part->verts.size() > m_vertId)
-		return m_part->verts[m_vertId];
+		return m_part->verts[m_vertId].get();
 	return nullptr;
 }
 
@@ -265,7 +272,7 @@ CTriNode* CWorldEditor::CreateTri()
 */
 
 
-CNode::CNode(cuttableMesh_t&& mesh) : m_mesh(std::move(mesh)), m_renderData(m_mesh), m_id(INVALID_NODE_ID), m_visible(true)
+CNode::CNode(clasp<cuttableMesh_t>&& mesh) : m_mesh(std::move(mesh)), m_renderData(m_mesh), m_id(INVALID_NODE_ID), m_visible(true)
 {
 	/*
 	m_sides = new nodeSide_t[m_sideCount];
@@ -277,8 +284,8 @@ CNode::CNode(cuttableMesh_t&& mesh) : m_mesh(std::move(mesh)), m_renderData(m_me
 	ConstructWalls();
 	*/
 
-	for(auto p : m_mesh.parts)
-		defineMeshPartFaces(*p);
+	for(auto &p : m_mesh->parts)
+		defineMeshPartFaces(p);
 	CalculateAABB();
 }
 
@@ -287,7 +294,7 @@ void CNode::PreviewUpdate()
 	PreviewUpdateThisOnly();
 
 	// Update what we're cutting
-	for (auto m : m_cutting)
+	for (auto &m : m_cutting)
 	{
 		m->PreviewUpdateThisOnly();
 	}
@@ -298,28 +305,28 @@ void CNode::PreviewUpdateThisOnly()
 	CalculateAABB();
 
 
-	for (auto pa : m_mesh.parts)
+	for (auto &pa : m_mesh->parts)
 	{
-		defineMeshPartFaces(*pa);
-		convexifyMeshPartFaces(*pa, pa->collision);
+		defineMeshPartFaces(pa);
+		convexifyMeshPartFaces(pa, pa->collision);
 		optimizeParallelEdges(pa, pa->collision);
 	}
 
-	std::vector<mesh_t*> cutters;
+	std::vector<clasp_ref<mesh_t>> cutters;
 	for (auto const &[_, node] : GetWorldEditor().m_nodes)
 		if (node.get() != this)
-			cutters.push_back(&node->m_mesh);
-	applyCuts(&m_mesh, cutters);
+			cutters.push_back(node->m_mesh.borrow());
+	applyCuts(m_mesh, cutters);
 
-	for (auto pa : m_mesh.parts)
+	for (auto &pa : m_mesh->parts)
 	{
 		
 		/*
-		for (auto cf : pa->collision)
+		for (auto &cf : pa->collision)
 			delete cf;
 		pa->collision.clear();
 
-		for (auto cf : pa->sliced ? pa->sliced->collision : pa->)
+		for (auto &cf : pa->sliced ? pa->sliced->collision : pa->)
 		{
 			face_t* f = new face_t;
 			cloneFaceInto(cf, f);
@@ -333,34 +340,36 @@ void CNode::PreviewUpdateThisOnly()
 		if (pa->sliced)
 		{
 			optimizeParallelEdges(pa, pa->sliced->faces);
-			for (auto cf : pa->sliced->faces)
+			for (auto &cf : pa->sliced->faces)
 			{
-				face_t* f = new face_t;
+				std::vector<clasp<face_t>> temp;
+				temp.push_back(make_clasp<face_t>());
+				auto f = temp.back().borrow();
 				cloneFaceInto(cf, f);
 				f->parent = cf;
-				std::vector<face_t*> temp;
-				temp.push_back(f);
-				convexifyMeshPartFaces(*pa, temp);
+				convexifyMeshPartFaces(pa, temp);
 				optimizeParallelEdges(pa, temp);
-				for(auto t : temp)
-					pa->sliced->collision.push_back(t);
+				for (auto& t : temp)
+				{
+					pa->sliced->collision.emplace_back();
+					std::swap(pa->sliced->collision.back(), t);
+				}
 			}
 		}
 
-
-		for (auto cf : pa->tris)
-			delete cf;
 		pa->tris.clear();
 
 		
-		for (auto cf : pa->sliced ? pa->sliced->collision : pa->collision)
+		for (auto &cf : pa->sliced ? pa->sliced->collision : pa->collision)
 		{
-			face_t* f = new face_t;
+			pa->tris.push_back(make_clasp<face_t>());
+			auto f = pa->tris.back().borrow();
 			cloneFaceInto(cf, f);
-			pa->tris.push_back(f);
+			graphFace( f );
 		}
 
-		triangluateMeshPartConvexFaces(*pa, pa->tris);
+
+		triangluateMeshPartConvexFaces(pa, pa->tris);
 	}
 
 	m_renderData.RebuildRenderData();
@@ -372,7 +381,7 @@ void CNode::Update()
 	UpdateThisOnly();
 
 	// Update what we're cutting
-	for (auto m : m_cutting)
+	for (auto &m : m_cutting)
 	{
 		m->UpdateThisOnly();
 	}
@@ -393,8 +402,8 @@ bool CNode::IsPointInAABB(glm::vec3 point) const
 aabb_t CNode::GetAbsAABB() const
 {
 	aabb_t aabb = m_aabb;
-	aabb.min += m_mesh.origin;
-	aabb.max += m_mesh.origin;
+	aabb.min += m_mesh->origin;
+	aabb.max += m_mesh->origin;
 	return aabb;
 }
 
@@ -430,8 +439,8 @@ void CNode::CalculateAABB()
 	//printf("AABB - Max:{%f, %f, %f} - Min:{%f, %f, %f}\n", m_aabb.max.x, m_aabb.max.y, m_aabb.max.z, m_aabb.min.x, m_aabb.min.y, m_aabb.min.z);
 }
 
-static cuttableMesh_t make_quad_mesh() {
-	cuttableMesh_t mesh;
+static clasp<cuttableMesh_t> make_quad_mesh() {
+	clasp<cuttableMesh_t> mesh = make_clasp<cuttableMesh_t>();
 
 	glm::vec3 points[] = {
 
@@ -447,25 +456,25 @@ static cuttableMesh_t make_quad_mesh() {
 
 	};
 
-	auto p = addMeshVerts(mesh, points, 8);
+	auto p = addMeshVerts(mesh, points);
 
-	glm::vec3* front[] = { p[7], p[6], p[5], p[4] };
-	addMeshFace(mesh, front, 4);
+	clasp_ref<glm::vec3> front[] = { p[7], p[6], p[5], p[4] };
+	addMeshFace(mesh.borrow(), front);
 
-	glm::vec3* back[] = { p[0], p[1], p[2], p[3] };
-	addMeshFace(mesh, back, 4);
+	clasp_ref<glm::vec3> back[] = { p[0], p[1], p[2], p[3] };
+	addMeshFace(mesh.borrow(), back);
 
-	glm::vec3* left[] = { p[3], p[7], p[4], p[0] };
-	addMeshFace(mesh, left, 4);
+	clasp_ref<glm::vec3> left[] = { p[3], p[7], p[4], p[0] };
+	addMeshFace(mesh.borrow(), left);
 
-	glm::vec3* right[] = { p[2], p[1], p[5], p[6] };
-	addMeshFace(mesh, right, 4);
+	clasp_ref<glm::vec3> right[] = { p[2], p[1], p[5], p[6] };
+	addMeshFace(mesh.borrow(), right);
 
-	glm::vec3* bottom[] = { p[4], p[5], p[1], p[0] };
-	addMeshFace(mesh, bottom, 4);
+	clasp_ref<glm::vec3> bottom[] = { p[4], p[5], p[1], p[0] };
+	addMeshFace(mesh.borrow(), bottom);
 
-	glm::vec3* top[] = { p[3], p[2], p[6], p[7] };
-	addMeshFace(mesh, top, 4);
+	clasp_ref<glm::vec3> top[] = { p[3], p[2], p[6], p[7] };
+	addMeshFace(mesh.borrow(), top);
 
 	return mesh;
 }

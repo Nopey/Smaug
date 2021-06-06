@@ -5,17 +5,17 @@
 std::unique_ptr<CNode> CWallExtrudeAction::CreateExtrusion()
 {
 	auto quad = std::make_unique<CQuadNode>();
-	quad->m_mesh.origin = m_node->Origin();
+	quad->m_mesh->origin = m_node->Origin();
 
-	meshPart_t* selectedPart = m_selectInfo.side;
+	meshPart_t const &selectedPart = m_selectInfo.side;
 
-	meshPart_t* newFront = quad->m_mesh.parts[0];
-	meshPart_t* newBack = quad->m_mesh.parts[1];
+	clasp_ref<meshPart_t> newFront = quad->m_mesh->parts[0];
+	clasp_ref<meshPart_t> newBack = quad->m_mesh->parts[1];
 
-	for (int i = 0; auto v : selectedPart->verts)
+	for (int i = 0; auto &v : selectedPart.verts)
 		*newBack->verts[i++]->vert = *v->vert + m_moveDelta;
 
-	for (int i = 0; auto v : selectedPart->verts)
+	for (int i = 0; auto &v : selectedPart.verts)
 		*newFront->verts[newFront->verts.size() - 1 - (i++)]->vert = *v->vert;
 
 	return quad;
@@ -25,8 +25,8 @@ void CWallExtrudeAction::Preview()
 {
 	meshPart_t* selectedPart = m_selectInfo.side;
 	glm::vec3 color = glm::dot(selectedPart->normal, m_moveDelta) < 0 ? COLOR_BLUE : COLOR_RED;
-	for(auto v : selectedPart->verts)
-		DebugDraw().LineDelta(*v->vert + m_node->m_mesh.origin, m_moveDelta, color, 0.75f, 0.01f );
+	for(auto &v : selectedPart->verts)
+		DebugDraw().LineDelta(*v->vert + m_node->m_mesh->origin, m_moveDelta, color, 0.75f, 0.01f );
 
 }
 

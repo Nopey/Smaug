@@ -94,7 +94,7 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 
 	int indexCount = 0;
 	int vertexCount = 0;
-	for (auto p : m_mesh.parts)
+	for (auto &p : m_mesh.parts)
 	{
 		if (p->sliced)
 		{
@@ -127,12 +127,12 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 	int iOffset = 0;
 
 
-	for (auto p : m_mesh.parts)
+	for (auto &p : m_mesh.parts)
 	{
 
 		glm::vec3 norm = p->normal;
 		int vs = vOffset;
-		for (auto v : p->verts)
+		for (auto &v : p->verts)
 		{
 			vtxData[vOffset] = { *v->vert, norm };
 			vOffset++;
@@ -140,14 +140,14 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 		int cv = vOffset;
 		
 		if(p->sliced)
-			for (auto v : p->sliced->cutVerts)
+			for (auto &v : p->sliced->cutVerts)
 			{
 				vtxData[vOffset] = { *v, norm };
 				vOffset++;
 			}
 
 
-		for (auto f : p->tris)
+		for (auto &f : p->tris)
 		{
 			//SASSERT(f->verts.size() == 3);
 			if (f->verts.size() != 3)
@@ -167,7 +167,7 @@ void CMeshRenderer::BuildRenderData(const bgfx::Memory*& vertBuf, const bgfx::Me
 				he = he->next;
 			} while (he != f->edges[0]);
 			*/
-			for (auto v : f->verts)
+			for (auto &v : f->verts)
 			{
 				uint16_t vert = 0;
 				bool found = false;

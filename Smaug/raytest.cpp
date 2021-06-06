@@ -207,11 +207,11 @@ void rayQuadTest(ray_t ray, Quad_t quad, testRayPlane_t& lastTest)
 
 
 template<bool cull = true>
-testRayPlane_t rayVertLoopTest(ray_t ray, vertex_t* vert, float closestT)
+testRayPlane_t rayVertLoopTest(ray_t ray, vertex_t const &vert, float closestT)
 {
     glm::vec3 normal = vertNextNormal(vert);
 
-    testRayPlane_t test = rayPlaneTest<cull>(ray, normal, *vert->vert, closestT);
+    testRayPlane_t test = rayPlaneTest<cull>(ray, normal, *vert.vert, closestT);
     if (!test.hit)
         return { false };
 
@@ -266,10 +266,10 @@ void rayAABBTest(ray_t ray, aabb_t aabb, testRayPlane_t& lastTest)
 
 }
 
-void testNode(ray_t ray, CNode* node, testRayPlane_t& end)
+static void testNode(ray_t ray, CNode &node, testRayPlane_t& end)
 {
     testRayPlane_t aabbTest;
-    aabb_t aabb = node->GetAbsAABB();
+    aabb_t aabb = node.GetAbsAABB();
 
 
     rayAABBTest(ray, aabb, aabbTest);
@@ -278,10 +278,10 @@ void testNode(ray_t ray, CNode* node, testRayPlane_t& end)
 
     // Test mesh
     // Offset the ray to the node
-    glm::vec3 origin = node->m_mesh.origin;
+    glm::vec3 origin = node.m_mesh->origin;
     ray.origin -= origin;
-    for (auto p : node->m_mesh.parts)
-        for (auto f : p->collision)
+    for (auto &p : node.m_mesh->parts)
+        for (auto &f : p->collision)
         {
             testRayPlane_t rayTest = rayVertLoopTest<true>(ray, f->verts.front(), end.t);
             if (rayTest.hit)
@@ -299,7 +299,7 @@ testRayPlane_t testRay(ray_t ray)
 
     for (auto const& [_, node] : GetWorldEditor().m_nodes)
     {
-        testNode(ray, node.get(), end );
+        testNode(ray, *node, end );
     }
     return end;
 }
@@ -495,10 +495,10 @@ bool testPointInTri(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2)
 bool testPointInTriNoEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2) { return testPointInTri<false>(p, tri0, tri1, tri2); }
 bool testPointInTriEdges(glm::vec3 p, glm::vec3 tri0, glm::vec3 tri1, glm::vec3 tri2) { return testPointInTri<true>(p, tri0, tri1, tri2); }
 
-testRayPlane_t pointOnPartLocal(meshPart_t* part, glm::vec3 p)
+testRayPlane_t pointOnPartLocal(meshPart_t const &part, glm::vec3 p)
 {
     
-    for (auto f : part->collision)
+    for (auto &f : part.collision)
     {
         if (f->verts.size() < 3)
             continue;

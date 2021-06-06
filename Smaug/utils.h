@@ -9,6 +9,7 @@
 #include <initializer_list>
 
 const double PI = 3.141592653589793238463;
+const float F_PI = (float)PI;
 
 // This function does not take Y into account
 bool IsPointOnLine2D(glm::vec3 point1, glm::vec3 point2, glm::vec3 mouse, float range);
@@ -100,7 +101,7 @@ inline constexpr glm::vec3 dirMask(glm::vec3 vec)
 
 inline constexpr glm::vec3 colorHSV(float hue, float saturation, float value)
 {
-	const float hueRange = 2 * PI;
+	const float hueRange = 2 * F_PI;
 	const float onesixth = hueRange / 6;
 	float oR = clamp<float>((std::fabs(hue - hueRange / 2.0f) - onesixth) / onesixth, 0.0f, 1.0f);
 	oR = (oR * saturation + (1.0f - saturation)) * value;
@@ -114,7 +115,7 @@ inline constexpr glm::vec3 colorHSV(glm::vec3 vec) { return colorHSV(vec.x, vec.
 
 inline glm::vec3 randColorHue()
 {
-	return colorHSV(rand() % 1000 / 1000.0f * PI * 2, 1, 1);
+	return colorHSV(rand() % 1000 / 1000.0f * F_PI * 2, 1, 1);
 }
 
 

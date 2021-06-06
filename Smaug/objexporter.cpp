@@ -37,15 +37,15 @@ char* COBJExporter::Export(CWorldEditor* world)
 		
 		stream << "# - Mesh Verts\n";
 
-		for (glm::vec3* v : mesh.verts)
+		for (auto &v : mesh.verts)
 			WriteVertex(*v + origin, stream);
 		
 		stream << "# - Cut Verts\n";
-		for (glm::vec3* v : mesh.cutVerts)
+		for (auto &v : mesh.cutVerts)
 			WriteVertex(*v + origin, stream);
 
 		stream << "# - Part Norms\n";
-		for (meshPart_t* p : mesh.parts)
+		for (auto &p : mesh.parts)
 			WriteNorm(p->normal, stream);
 
 	}
@@ -60,10 +60,10 @@ char* COBJExporter::Export(CWorldEditor* world)
 		cuttableMesh_t& mesh = node->m_mesh;
 		stream << "# Node " << node->NodeID() << "\n";
 
-		for (auto p : mesh.parts)
+		for (auto &p : mesh.parts)
 		{
 
-			for (auto f : p->sliced ? p->sliced->collision : p->collision)
+			for (auto &f : p->sliced ? p->sliced->collision : p->collision)
 			{
 				// If we have < 3 verts, dump this bozo
 				if (f->verts.size() < 3)
@@ -72,7 +72,7 @@ char* COBJExporter::Export(CWorldEditor* world)
 				}
 
 				stream << "f";
-				for (auto v : f->verts)
+				for (auto &v : f->verts)
 				{
 					uint16_t vert = 0;
 					auto f = std::find(mesh.verts.begin(), mesh.verts.end(), v->vert);
